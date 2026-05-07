@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "id": "lora",
+  "name": "LoRA",
+  "short_name": "LO",
+  "description": "Z-Image Turbo LoRA training stack using AI Toolkit, packaged as an installable Nymph module.",
+  "category": "training",
+  "packaging": "repo",
+  "repo": {
+    "url": "https://github.com/nymphnerds/lora.git",
+    "branch": "main"
+  },
+  "install": {
+    "path": "$HOME/ZImage-Trainer",
+    "script": "scripts/install_lora.sh"
+  },
+  "runtime": {
+    "services": [
+      {
+        "id": "aitk-ui",
+        "host": "127.0.0.1",
+        "port": 8675,
+        "url": "http://127.0.0.1:8675"
+      },
+      {
+        "id": "aitk-gradio",
+        "host": "127.0.0.1",
+        "port": 7861,
+        "url": "http://127.0.0.1:7861"
+      }
+    ]
+  },
+  "manager": {
+    "page": "custom",
+    "status": "scripts/lora_status.sh",
+    "start": "scripts/lora_start.sh",
+    "stop": "scripts/lora_stop.sh",
+    "open": "scripts/lora_open.sh",
+    "logs": "scripts/lora_logs.sh",
+    "refresh": "scripts/lora_refresh.sh"
+  },
+  "dependencies": {
+    "python": "3.x with venv",
+    "node": "latest Node 20 local bootstrap",
+    "torch": "2.9.1 cu128",
+    "ai_toolkit": {
+      "repo": "https://github.com/ostris/ai-toolkit.git",
+      "branch": "main"
+    },
+    "training_model": "Tongyi-MAI/Z-Image-Turbo",
+    "training_adapter": "ostris/zimage_turbo_training_adapter"
+  },
+  "notes": [
+    "LoRA is an installer module, not a runtime dump.",
+    "The custom manager page should expose datasets, jobs, generated LoRAs, UI launch, queue worker, and adapter/model readiness.",
+    "Do not commit datasets, jobs, generated LoRAs, model bundles, adapter weights, venvs, Node runtimes, logs, or UI databases."
+  ]
+}
