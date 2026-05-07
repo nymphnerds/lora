@@ -37,7 +37,29 @@
     "stop": "scripts/lora_stop.sh",
     "open": "scripts/lora_open.sh",
     "logs": "scripts/lora_logs.sh",
-    "refresh": "scripts/lora_refresh.sh"
+    "refresh": "scripts/lora_refresh.sh",
+    "uninstall": "scripts/lora_uninstall.sh"
+  },
+  "uninstall": {
+    "supports_purge": true,
+    "requires_confirmation": true,
+    "dry_run_arg": "--dry-run",
+    "confirm_arg": "--yes",
+    "purge_arg": "--purge",
+    "preserve_by_default": [
+      "datasets",
+      "loras",
+      "jobs",
+      "config",
+      "logs"
+    ],
+    "removes_by_default": [
+      "ai-toolkit",
+      ".node20",
+      "models",
+      "adapters",
+      "run"
+    ]
   },
   "dependencies": {
     "python": "3.x with venv",
