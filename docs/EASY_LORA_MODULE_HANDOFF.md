@@ -88,13 +88,13 @@ including local/API current-job settings import into the form.
 
 ### Done
 
-- `LoRA` exists as a first-party module repo with manifest version `0.1.20`.
+- `LoRA` exists as a first-party module repo with manifest version `0.1.21`.
 - The Manager can install, update, repair, uninstall, and delete LoRA data using
   the standard module lifecycle rail.
 - Base install creates the isolated trainer root:
 
 ```text
-/home/nymph/ZImage-Trainer
+/home/nymph/LoRA
 ```
 
 - Base install prepares the AI Toolkit checkout, Python venv, local Node 20,
@@ -198,7 +198,7 @@ completed `.safetensors` output exists:
 
 ```text
 Finished: My First LoRA
-/home/nymph/ZImage-Trainer/loras/my_first_lora/my_first_lora.safetensors
+/home/nymph/LoRA/loras/my_first_lora/my_first_lora.safetensors
 Activation: my_first_lora
 ```
 
@@ -213,8 +213,8 @@ Declared in `nymph.json`:
 easy_lora      -> opens module UI
 fetch_assets   -> downloads/resumes training assets
 aitoolkit      -> starts/opens official AI Toolkit
-open_datasets  -> opens /home/nymph/ZImage-Trainer/datasets
-open_loras     -> opens /home/nymph/ZImage-Trainer/loras
+open_datasets  -> opens /home/nymph/LoRA/datasets
+open_loras     -> opens /home/nymph/LoRA/loras
 open_pictures  -> creates/prints selected dataset folder
 open_captions  -> refreshes selected metadata.csv and mirrors .txt captions
 prepare_dataset -> refreshes selected metadata.csv and mirrors .txt captions
@@ -283,7 +283,7 @@ New in module version `0.1.19`:
 job_status finished-LoRA discovery plus Easy LoRA final/latest output summary.
 ```
 
-New in module version `0.1.20`:
+New in module version `0.1.21`:
 
 ```text
 Easy LoRA saved-job settings import into the form, using AI Toolkit job_config
@@ -759,7 +759,7 @@ zimage_turbo_training_adapter_v2.safetensors
 Install root:
 
 ```text
-/home/nymph/ZImage-Trainer
+/home/nymph/LoRA
 ```
 
 Preserve user data on repair/uninstall unless purging:
@@ -800,12 +800,12 @@ dataset_count=N
 running=true/false
 state=available/installed/needs_assets/running/needs_attention
 health=ok/degraded/missing
-install_root=/home/nymph/ZImage-Trainer
-datasets=/home/nymph/ZImage-Trainer/datasets
-loras=/home/nymph/ZImage-Trainer/loras
-jobs=/home/nymph/ZImage-Trainer/jobs
-logs_dir=/home/nymph/ZImage-Trainer/logs
-marker=/home/nymph/ZImage-Trainer/.nymph-module-version
+install_root=/home/nymph/LoRA
+datasets=/home/nymph/LoRA/datasets
+loras=/home/nymph/LoRA/loras
+jobs=/home/nymph/LoRA/jobs
+logs_dir=/home/nymph/LoRA/logs
+marker=/home/nymph/LoRA/.nymph-module-version
 detail=<human summary>
 ```
 

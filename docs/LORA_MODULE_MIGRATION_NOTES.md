@@ -3,7 +3,7 @@
 The live install folder is:
 
 ```text
-~/ZImage-Trainer
+~/LoRA
 ```
 
 That folder is a generated runtime, not the source repo.
@@ -30,7 +30,7 @@ id: lora
 name: LoRA
 short name: LO
 repo: github.com/nymphnerds/lora
-install path: ~/ZImage-Trainer
+install path: ~/LoRA
 ```
 
 ## Source Of Truth

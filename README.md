@@ -14,29 +14,29 @@ It installs and manages:
 - optional `ostris/zimage_turbo_training_adapter`, fetched after base install
 - dataset, job, config, log, and LoRA output folders
 
-This repo is intentionally a clean installer/contract repo. It is not a dump of a live `~/ZImage-Trainer` runtime folder.
+This repo is intentionally a clean installer/contract repo. It is not a dump of a live `~/LoRA` runtime folder.
 
 ## Runtime Layout
 
 Expected in-distro install path:
 
 ```text
-~/ZImage-Trainer
+~/LoRA
 ```
 
 Generated runtime folders include:
 
 ```text
-~/ZImage-Trainer/ai-toolkit
-~/ZImage-Trainer/.node20
-~/ZImage-Trainer/datasets
-~/ZImage-Trainer/loras
-~/ZImage-Trainer/jobs
-~/ZImage-Trainer/logs
-~/ZImage-Trainer/config
-~/ZImage-Trainer/models
-~/ZImage-Trainer/adapters
-~/ZImage-Trainer/run
+~/LoRA/ai-toolkit
+~/LoRA/.node20
+~/LoRA/datasets
+~/LoRA/loras
+~/LoRA/jobs
+~/LoRA/logs
+~/LoRA/config
+~/LoRA/models
+~/LoRA/adapters
+~/LoRA/run
 ```
 
 Those folders are local runtime state and must not be committed to this repo.

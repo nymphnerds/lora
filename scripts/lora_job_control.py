@@ -484,7 +484,7 @@ def stop_job(args: argparse.Namespace) -> int:
     job = get_active_train_job()
     if not job or not job.get("id"):
         print("active_state=idle")
-        print("No active Z-Image Trainer job was found.")
+        print("No active LoRA job was found.")
         return 0
 
     job_id = str(job["id"])

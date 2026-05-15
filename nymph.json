@@ -3,7 +3,7 @@
   "id": "lora",
   "name": "LoRA",
   "short_name": "LO",
-  "version": "0.1.20",
+  "version": "0.1.21",
   "description": "Z-Image Turbo LoRA training stack using AI Toolkit, packaged as an installable Nymph module.",
   "category": "training",
   "packaging": "repo",
@@ -17,7 +17,7 @@
     "ref": "main"
   },
   "overview": {
-    "body": "A LoRA is a small training file that teaches Z-Image Turbo a specific character, outfit, object, style, or subject without replacing the whole base model. You train it from your own images, then use the finished LoRA in generation to reproduce that look.\n\nThis module installs a local Z-Image Turbo LoRA training workspace using AI Toolkit. It creates the trainer runtime, Easy LoRA beginner UI, advanced AI Toolkit UI, queue worker, dataset folder, logs, generated LoRA output folder, and shared training asset folders.\n\nFirst-time setup:\n1. Install sets up the trainer app and tools only.\n2. Fetch Training Assets downloads or resumes the large Z-Image Turbo training model and the required training adapter. Do this once before your first training run. This can take a while and uses a lot of disk space, but it is resumable.\n\nBeginner flow after assets are ready:\n1. Open Datasets: put each training set in its own folder with images and captions.\n2. Easy LoRA: use the beginner UI to make captions, create jobs, start training, stop jobs, and watch progress.\n3. AI Toolkit: use the official advanced UI only when you want the full training interface.\n4. Open LoRAs: find finished .safetensors files after training. Use Logs if a run needs troubleshooting.\n\nNormal Uninstall removes the trainer runtime and keeps your datasets, jobs, outputs, logs, and downloaded assets. Delete Data is the separate wipe button for those saved files.",
+    "body": "A LoRA is a small training file that teaches Z-Image Turbo a specific character, outfit, object, style, or subject without replacing the whole base model. You train it from your own images, then use the finished LoRA in generation to reproduce that look.\n\nThis module installs a local Z-Image Turbo LoRA training workspace at $HOME/LoRA using AI Toolkit. It creates the trainer runtime, Easy LoRA beginner UI, advanced AI Toolkit UI, queue worker, dataset folder, logs, generated LoRA output folder, and shared training asset folders.\n\nFirst-time setup:\n1. Install sets up the trainer app and tools only.\n2. Fetch Training Assets downloads or resumes the large Z-Image Turbo training model and the required training adapter. Do this once before your first training run. This can take a while and uses a lot of disk space, but it is resumable.\n\nBeginner flow after assets are ready:\n1. Open Datasets: put each training set in its own folder with images and captions.\n2. Easy LoRA: use the beginner UI to make captions, create jobs, start training, stop jobs, and watch progress.\n3. AI Toolkit: use the official advanced UI only when you want the full training interface.\n4. Open LoRAs: find finished .safetensors files after training. Use Logs if a run needs troubleshooting.\n\nNormal Uninstall removes the trainer runtime and keeps your datasets, jobs, outputs, logs, and downloaded assets. Delete Data is the separate wipe button for those saved files.",
     "links": [
       {
         "label": "AI Toolkit",
@@ -40,11 +40,11 @@
     ]
   },
   "install": {
-    "root": "$HOME/ZImage-Trainer",
+    "root": "$HOME/LoRA",
     "entrypoint": "scripts/install_lora.sh",
-    "version_marker": "$HOME/ZImage-Trainer/.nymph-module-version",
+    "version_marker": "$HOME/LoRA/.nymph-module-version",
     "installed_markers": [
-      "$HOME/ZImage-Trainer/.nymph-module-version"
+      "$HOME/LoRA/.nymph-module-version"
     ]
   },
   "runtime": {
@@ -64,14 +64,14 @@
     ]
   },
   "artifacts": {
-    "install_root": "$HOME/ZImage-Trainer",
-    "datasets_root": "$HOME/ZImage-Trainer/datasets",
-    "outputs_root": "$HOME/ZImage-Trainer/loras",
-    "jobs_root": "$HOME/ZImage-Trainer/jobs",
-    "config_root": "$HOME/ZImage-Trainer/config",
-    "logs_root": "$HOME/ZImage-Trainer/logs",
-    "models_root": "$HOME/ZImage-Trainer/models",
-    "adapters_root": "$HOME/ZImage-Trainer/adapters"
+    "install_root": "$HOME/LoRA",
+    "datasets_root": "$HOME/LoRA/datasets",
+    "outputs_root": "$HOME/LoRA/loras",
+    "jobs_root": "$HOME/LoRA/jobs",
+    "config_root": "$HOME/LoRA/config",
+    "logs_root": "$HOME/LoRA/logs",
+    "models_root": "$HOME/LoRA/models",
+    "adapters_root": "$HOME/LoRA/adapters"
   },
   "entrypoints": {
     "install": "scripts/install_lora.sh",

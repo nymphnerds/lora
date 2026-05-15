@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODULE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-TRAINER_ROOT="${ZIMAGE_TRAINER_ROOT:-$HOME/ZImage-Trainer}"
+TRAINER_ROOT="${ZIMAGE_TRAINER_ROOT:-$HOME/LoRA}"
 REPO_DIR="${ZIMAGE_TRAINER_REPO_DIR:-$TRAINER_ROOT/ai-toolkit}"
 VENV_DIR="${ZIMAGE_TRAINER_VENV:-$REPO_DIR/venv}"
 DATASET_ROOT="${ZIMAGE_DATASET_ROOT:-$TRAINER_ROOT/datasets}"
@@ -22,7 +22,7 @@ UI_DB_PATH="$REPO_DIR/aitk_db.db"
 UI_PORT="${ZIMAGE_TRAINER_UI_PORT:-8675}"
 GRADIO_PORT="${ZIMAGE_TRAINER_GRADIO_PORT:-7861}"
 
-echo "Z-Image Trainer: preparing isolated AI Toolkit sidecar."
+echo "LoRA: preparing isolated AI Toolkit sidecar."
 mkdir -p "$TRAINER_ROOT" "$DATASET_ROOT" "$LORA_ROOT" "$LOG_ROOT" "$JOB_ROOT" "$CONFIG_ROOT" "$BIN_ROOT" "$MODEL_ROOT" "$ADAPTER_ROOT"
 
 echo "Stopping any running trainer UIs before repair..."
@@ -165,7 +165,7 @@ config:
   name: "my_first_zimage_lora"
   process:
     - type: 'sd_trainer'
-      training_folder: "/home/nymph/ZImage-Trainer/loras"
+      training_folder: "/home/nymph/LoRA/loras"
       device: cuda:0
       network:
         type: "lora"
@@ -176,7 +176,7 @@ config:
         save_every: 250
         max_step_saves_to_keep: 4
       datasets:
-        - folder_path: "/home/nymph/ZImage-Trainer/datasets/my_first_zimage_lora"
+        - folder_path: "/home/nymph/LoRA/datasets/my_first_zimage_lora"
           caption_ext: "txt"
           caption_dropout_rate: 0.05
           cache_latents_to_disk: false
@@ -210,7 +210,7 @@ config:
         switch_boundary_every: 1
         loss_type: "mse"
       model:
-        name_or_path: "/home/nymph/ZImage-Trainer/models/Tongyi-MAI/Z-Image-Turbo"
+        name_or_path: "/home/nymph/LoRA/models/Tongyi-MAI/Z-Image-Turbo"
         quantize: false
         qtype: "qfloat8"
         quantize_te: false
@@ -221,7 +221,7 @@ config:
         layer_offloading: false
         layer_offloading_text_encoder_percent: 1
         layer_offloading_transformer_percent: 1
-        assistant_lora_path: "/home/nymph/ZImage-Trainer/adapters/zimage_turbo_training_adapter/zimage_turbo_training_adapter_v1.safetensors"
+        assistant_lora_path: "/home/nymph/LoRA/adapters/zimage_turbo_training_adapter/zimage_turbo_training_adapter_v1.safetensors"
       sample:
         sampler: "flowmatch"
         sample_every: 250
@@ -266,7 +266,7 @@ fi
 export USER="${USER:-$(id -un)}"
 export LOGNAME="${LOGNAME:-${USER}}"
 
-TRAINER_ROOT="${ZIMAGE_TRAINER_ROOT:-$HOME/ZImage-Trainer}"
+TRAINER_ROOT="${ZIMAGE_TRAINER_ROOT:-$HOME/LoRA}"
 LOG_ROOT="${ZIMAGE_TRAINER_LOG_ROOT:-$TRAINER_ROOT/logs}"
 RUN_STATE_DIR="${ZIMAGE_TRAINER_RUN_STATE_DIR:-$TRAINER_ROOT/run}"
 PID_FILE="$RUN_STATE_DIR/active_train.pid"
@@ -405,7 +405,7 @@ if [[ -z "${HOME:-}" || ! -d "${HOME}" || "${HOME}" == "/root" ]]; then
   fi
 fi
 
-TRAINER_ROOT="${ZIMAGE_TRAINER_ROOT:-$HOME/ZImage-Trainer}"
+TRAINER_ROOT="${ZIMAGE_TRAINER_ROOT:-$HOME/LoRA}"
 UI_DIR="${ZIMAGE_TRAINER_REPO_DIR:-$TRAINER_ROOT/ai-toolkit}/ui"
 NODE_BIN_DIR="$TRAINER_ROOT/.node20/bin"
 WORKER_LOG="$TRAINER_ROOT/logs/aitk-worker.log"
@@ -450,7 +450,7 @@ if [[ -z "${HOME:-}" || ! -d "${HOME}" || "${HOME}" == "/root" ]]; then
   fi
 fi
 
-TRAINER_ROOT="${ZIMAGE_TRAINER_ROOT:-$HOME/ZImage-Trainer}"
+TRAINER_ROOT="${ZIMAGE_TRAINER_ROOT:-$HOME/LoRA}"
 UI_DIR="${ZIMAGE_TRAINER_REPO_DIR:-$TRAINER_ROOT/ai-toolkit}/ui"
 NODE_BIN_DIR="$TRAINER_ROOT/.node20/bin"
 UI_PORT="${ZIMAGE_TRAINER_UI_PORT:-8675}"
@@ -535,7 +535,7 @@ if [[ -z "${HOME:-}" || ! -d "${HOME}" || "${HOME}" == "/root" ]]; then
   fi
 fi
 
-TRAINER_ROOT="${ZIMAGE_TRAINER_ROOT:-$HOME/ZImage-Trainer}"
+TRAINER_ROOT="${ZIMAGE_TRAINER_ROOT:-$HOME/LoRA}"
 REPO_DIR="${ZIMAGE_TRAINER_REPO_DIR:-$TRAINER_ROOT/ai-toolkit}"
 VENV_DIR="${ZIMAGE_TRAINER_VENV:-$REPO_DIR/venv}"
 GRADIO_PORT="${ZIMAGE_TRAINER_GRADIO_PORT:-7861}"
@@ -621,7 +621,7 @@ EOF
 
 chmod +x "$BIN_ROOT/ztrain-start-gradio-ui" "$BIN_ROOT/ztrain-stop-gradio-ui"
 
-echo "Z-Image Trainer installed."
+echo "LoRA installed."
 echo "Trainer root: $TRAINER_ROOT"
 echo "Datasets: $DATASET_ROOT"
 echo "LoRA outputs: $LORA_ROOT"
