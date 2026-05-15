@@ -3,7 +3,7 @@
   "id": "lora",
   "name": "LoRA",
   "short_name": "LO",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Z-Image Turbo LoRA training stack using AI Toolkit, packaged as an installable Nymph module.",
   "category": "training",
   "packaging": "repo",
@@ -137,10 +137,12 @@
   },
   "uninstall": {
     "supports_purge": true,
+    "supports_data_delete": true,
     "requires_confirmation": true,
     "dry_run_arg": "--dry-run",
     "confirm_arg": "--yes",
     "purge_arg": "--purge",
+    "data_only_arg": "--data-only",
     "preserve_by_default": [
       "datasets",
       "loras",
