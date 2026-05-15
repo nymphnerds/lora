@@ -18,7 +18,7 @@ while [[ $# -gt 0 ]]; do
 Usage: lora_uninstall.sh [--dry-run] [--yes] [--purge]
 
 Default uninstall removes AI Toolkit/runtime pieces but preserves datasets,
-jobs, generated LoRAs, config, and logs.
+jobs, generated LoRAs, config, logs, and downloaded training assets.
 --purge removes the whole trainer root, including datasets and generated LoRAs.
 EOF
       exit 0
@@ -39,8 +39,6 @@ else
   echo "mode=uninstall"
   echo "delete=${LORA_INSTALL_ROOT}/ai-toolkit"
   echo "delete=${LORA_INSTALL_ROOT}/.node20"
-  echo "delete=${LORA_INSTALL_ROOT}/models"
-  echo "delete=${LORA_INSTALL_ROOT}/adapters"
   echo "delete=${LORA_INSTALL_ROOT}/run"
   echo "delete=${LORA_INSTALL_ROOT}/bin"
   echo "preserve=${LORA_INSTALL_ROOT}/datasets"
@@ -48,6 +46,8 @@ else
   echo "preserve=${LORA_INSTALL_ROOT}/jobs"
   echo "preserve=${LORA_INSTALL_ROOT}/config"
   echo "preserve=${LORA_INSTALL_ROOT}/logs"
+  echo "preserve=${LORA_INSTALL_ROOT}/models"
+  echo "preserve=${LORA_INSTALL_ROOT}/adapters"
 fi
 
 if [[ "${DRY_RUN}" -eq 1 ]]; then
@@ -73,8 +73,6 @@ else
   rm -rf \
     "${LORA_INSTALL_ROOT}/ai-toolkit" \
     "${LORA_INSTALL_ROOT}/.node20" \
-    "${LORA_INSTALL_ROOT}/models" \
-    "${LORA_INSTALL_ROOT}/adapters" \
     "${LORA_INSTALL_ROOT}/run" \
     "${LORA_INSTALL_ROOT}/bin"
 fi

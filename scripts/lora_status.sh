@@ -13,6 +13,7 @@ node_ready=false
 ui_ready=false
 adapter_ready=false
 model_ready=false
+assets_ready=false
 official_ui_running=false
 gradio_running=false
 worker_running=false
@@ -56,7 +57,8 @@ if [[ "${installed}" == "true" ]]; then
   [[ -x "${LORA_NODE_DIR}/bin/node" ]] && node_ready=true
   [[ -d "${LORA_UI_DIR}/.next" ]] && ui_ready=true
   [[ -f "${LORA_ADAPTER_DIR}/selected_adapter_path.txt" ]] && adapter_ready=true
-  [[ -d "${LORA_MODEL_DIR}/transformer" && -d "${LORA_MODEL_DIR}/text_encoder" && -d "${LORA_MODEL_DIR}/tokenizer" ]] && model_ready=true
+  [[ -d "${LORA_MODEL_DIR}/transformer" && -d "${LORA_MODEL_DIR}/text_encoder" && -d "${LORA_MODEL_DIR}/tokenizer" && -f "${LORA_MODEL_DIR}/vae/diffusion_pytorch_model.safetensors" ]] && model_ready=true
+  [[ "${adapter_ready}" == "true" && "${model_ready}" == "true" ]] && assets_ready=true
 fi
 
 if [[ "${installed}" == "true" ]] && lora_port_open "${LORA_UI_PORT}" >/dev/null 2>&1; then
@@ -74,9 +76,13 @@ fi
 if [[ "${official_ui_running}" == "true" || "${gradio_running}" == "true" || "${worker_running}" == "true" ]]; then
   state=running
   health=ok
-elif [[ "${installed}" == "true" && "${repo_ready}" == "true" && "${venv_ready}" == "true" && "${node_ready}" == "true" && "${ui_ready}" == "true" && "${adapter_ready}" == "true" && "${model_ready}" == "true" ]]; then
+elif [[ "${installed}" == "true" && "${repo_ready}" == "true" && "${venv_ready}" == "true" && "${node_ready}" == "true" && "${ui_ready}" == "true" && "${assets_ready}" == "true" ]]; then
   state=installed
   health=ok
+elif [[ "${installed}" == "true" && "${repo_ready}" == "true" && "${venv_ready}" == "true" && "${node_ready}" == "true" && "${ui_ready}" == "true" ]]; then
+  state=needs_assets
+  health=ok
+  detail="LoRA runtime is installed. Training assets are not ready yet."
 elif [[ "${installed}" == "true" ]]; then
   state=needs_attention
   health=degraded
@@ -98,6 +104,7 @@ node_ready=${node_ready}
 ui_ready=${ui_ready}
 adapter_ready=${adapter_ready}
 model_ready=${model_ready}
+assets_ready=${assets_ready}
 official_ui_running=${official_ui_running}
 gradio_running=${gradio_running}
 worker_running=${worker_running}

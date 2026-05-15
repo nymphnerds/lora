@@ -10,8 +10,8 @@ It installs and manages:
 - the official AI Toolkit Next.js UI on port `8675`
 - the AI Toolkit Gradio UI on port `7861`
 - queue worker support
-- Z-Image Turbo training model cache
-- `ostris/zimage_turbo_training_adapter`
+- optional Z-Image Turbo training model cache, fetched after base install
+- optional `ostris/zimage_turbo_training_adapter`, fetched after base install
 - dataset, job, config, log, and LoRA output folders
 
 This repo is intentionally a clean installer/contract repo. It is not a dump of a live `~/ZImage-Trainer` runtime folder.
@@ -54,10 +54,11 @@ scripts/lora_start.sh
 scripts/lora_stop.sh
 scripts/lora_open.sh
 scripts/lora_logs.sh
+scripts/lora_fetch_assets.sh
 scripts/lora_refresh.sh
 ```
 
-The LoRA manager page should remain custom. It needs controls for datasets, jobs, generated LoRAs, UI launch, queue worker, and model/adaptor readiness.
+The LoRA manager page should remain custom. It needs controls for datasets, jobs, generated LoRAs, UI launch, queue worker, and model/adapter readiness.
 
 ## Default Local URLs
 
@@ -66,15 +67,17 @@ AI Toolkit official UI: http://localhost:8675
 AI Toolkit Gradio UI:   http://localhost:7861
 ```
 
-## Model And Adapter Pulls
+## Training Asset Pulls
 
-The installer pulls the Z-Image Turbo training bundle from:
+Base install does not block on the large training weights. Use `scripts/lora_fetch_assets.sh` or the Manager `Prepare Training Assets` action to download or resume them.
+
+The asset fetch pulls the Z-Image Turbo training bundle from:
 
 ```text
 Tongyi-MAI/Z-Image-Turbo
 ```
 
-The installer pulls the Z-Image Turbo training adapter from:
+The asset fetch pulls the Z-Image Turbo training adapter from:
 
 ```text
 ostris/zimage_turbo_training_adapter

@@ -3,7 +3,7 @@
   "id": "lora",
   "name": "LoRA",
   "short_name": "LO",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Z-Image Turbo LoRA training stack using AI Toolkit, packaged as an installable Nymph module.",
   "category": "training",
   "packaging": "repo",
@@ -17,7 +17,7 @@
     "ref": "main"
   },
   "overview": {
-    "body": "LoRA installs the Z-Image Turbo training stack as a Nymph module. It prepares an isolated AI Toolkit runtime, local Node UI, queue worker, Z-Image Turbo training model cache, training adapter, datasets, jobs, logs, and generated LoRA output folders.\n\nInstall sets up the trainer runtime and required training assets. Use AI Toolkit to open the official advanced UI after install. Easy LoRA will be added as the module-owned beginner UI after the install/status/action contract is stable.\n\nUser data is preserved by normal uninstall: datasets, jobs, generated LoRAs, config, and logs stay in the trainer root unless purge is explicitly requested.",
+    "body": "LoRA installs the Z-Image Turbo training stack as a Nymph module. It prepares an isolated AI Toolkit runtime, local Node UI, queue worker, datasets, jobs, logs, and generated LoRA output folders.\n\nInstall sets up the trainer runtime first. Use Prepare Training Assets to download or resume the large Z-Image Turbo training model bundle and training adapter before the first training run. Use AI Toolkit to open the official advanced UI after install. Easy LoRA will be added as the module-owned beginner UI after the install/status/action contract is stable.\n\nUser data is preserved by normal uninstall: datasets, jobs, generated LoRAs, config, logs, and downloaded training assets stay in the trainer root unless purge is explicitly requested.",
     "links": [
       {
         "label": "AI Toolkit",
@@ -83,6 +83,7 @@
     "open_loras": "scripts/lora_open_loras.sh",
     "open_datasets": "scripts/lora_open_datasets.sh",
     "open_jobs": "scripts/lora_open_jobs.sh",
+    "fetch_assets": "scripts/lora_fetch_assets.sh",
     "refresh": "scripts/lora_refresh.sh",
     "uninstall": "scripts/lora_uninstall.sh"
   },
@@ -95,6 +96,12 @@
         "label": "AI Toolkit",
         "entrypoint": "start",
         "result": "open_external_browser"
+      },
+      {
+        "id": "fetch_assets",
+        "label": "Prepare Training Assets",
+        "entrypoint": "fetch_assets",
+        "result": "show_output"
       },
       {
         "id": "open_loras",
@@ -139,13 +146,13 @@
       "loras",
       "jobs",
       "config",
-      "logs"
+      "logs",
+      "models",
+      "adapters"
     ],
     "removes_by_default": [
       "ai-toolkit",
       ".node20",
-      "models",
-      "adapters",
       "run"
     ]
   },

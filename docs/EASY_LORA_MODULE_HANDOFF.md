@@ -397,12 +397,20 @@ The module installer should continue to prepare:
 - local Node 20
 - official AI Toolkit UI deps/build
 - Prisma DB
-- training model cache
-- training adapter cache
 - launcher scripts
 - helper scripts
 - module manifest/UI files in the install root
 - `.nymph-module-version` written last
+
+Large training assets are intentionally a second explicit step:
+
+- `scripts/lora_fetch_assets.sh`
+- Manager action label: `Prepare Training Assets`
+- downloads/resumes Z-Image Turbo model cache
+- downloads/resumes `ostris/zimage_turbo_training_adapter`
+- selects/writes `selected_adapter_path.txt`
+
+This keeps base install from looking hung while multi-GB Hugging Face weights download.
 
 Install root:
 
@@ -446,7 +454,7 @@ active_info=<text>
 lora_count=N
 dataset_count=N
 running=true/false
-state=available/installed/running/needs_attention
+state=available/installed/needs_assets/running/needs_attention
 health=ok/degraded/missing
 install_root=/home/nymph/ZImage-Trainer
 datasets=/home/nymph/ZImage-Trainer/datasets
