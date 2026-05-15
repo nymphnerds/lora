@@ -92,12 +92,12 @@ Relevant pushed heads before this handoff update:
 NymphsCore modular: 0088baa  module UI rail label is Close UI
 ```
 
-The live test WSL install was updated in place to LoRA `0.1.33` without
+The live test WSL install was updated in place to LoRA `0.1.34` without
 reinstalling or redownloading training assets.
 
 ### Done
 
-- `LoRA` exists as a first-party module repo with manifest version `0.1.33`.
+- `LoRA` exists as a first-party module repo with manifest version `0.1.34`.
 - The Manager can install, update, repair, uninstall, and delete LoRA data using
   the standard module lifecycle rail.
 - Base install creates the isolated trainer root:
@@ -234,7 +234,6 @@ Declared in `nymph.json`:
 
 ```text
 easy_lora      -> opens module UI
-guide          -> opens the NymphsCore GitHub Pages Easy LoRA guide
 fetch_assets   -> downloads/resumes training assets
 aitoolkit      -> starts/opens official AI Toolkit
 open_datasets  -> opens /home/nymph/LoRA/datasets
@@ -347,11 +346,20 @@ Fast Test, Baseline, Style, Strong Style.
 New in module version `0.1.33`:
 
 ```text
-Added a Guide module action for the public Easy LoRA training guide:
+Superseded by 0.1.34. A Guide module action was briefly added, but that
+duplicated the Manager's existing right-rail Guide button.
+```
+
+New in module version `0.1.34`:
+
+```text
+Removed the duplicate Guide module action. The public Easy LoRA guide is
+Manager-owned:
 https://nymphnerds.github.io/NymphsCore/home/guides/training.html
 
-Manager should show this as // Guide both on the LoRA detail action rail and
-while Easy LoRA is open next to // Close UI.
+Core modular should route the existing right-rail Guide button to this URL when
+LoRA is the displayed module, and should show // Guide beside // Close UI while
+Easy LoRA is open.
 ```
 
 Related Core modular change:
