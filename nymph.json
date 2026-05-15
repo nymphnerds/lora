@@ -3,7 +3,7 @@
   "id": "lora",
   "name": "LoRA",
   "short_name": "LO",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "Z-Image Turbo LoRA training stack using AI Toolkit, packaged as an installable Nymph module.",
   "category": "training",
   "packaging": "repo",
@@ -124,6 +124,12 @@
         "label": "AI Toolkit",
         "entrypoint": "start",
         "result": "open_external_browser"
+      },
+      {
+        "id": "stop",
+        "label": "Stop LoRA",
+        "entrypoint": "stop",
+        "result": "show_output"
       },
       {
         "id": "open_datasets",

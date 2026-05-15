@@ -88,7 +88,7 @@ including local/API current-job settings import into the form.
 
 ### Done
 
-- `LoRA` exists as a first-party module repo with manifest version `0.1.21`.
+- `LoRA` exists as a first-party module repo with manifest version `0.1.22`.
 - The Manager can install, update, repair, uninstall, and delete LoRA data using
   the standard module lifecycle rail.
 - Base install creates the isolated trainer root:
@@ -283,7 +283,7 @@ New in module version `0.1.19`:
 job_status finished-LoRA discovery plus Easy LoRA final/latest output summary.
 ```
 
-New in module version `0.1.21`:
+New in module version `0.1.22`:
 
 ```text
 Easy LoRA saved-job settings import into the form, using AI Toolkit job_config
