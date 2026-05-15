@@ -267,7 +267,7 @@
 
   .jobs {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 8px;
     margin-top: 10px;
   }
@@ -313,7 +313,7 @@
   }
 
   .fill {
-    width: 18%;
+    width: 0;
     height: 100%;
     background: linear-gradient(90deg, var(--teal), var(--lime));
     box-shadow: 0 0 18px rgba(85,223,240,0.34);
@@ -325,6 +325,47 @@
     gap: 10px;
     margin-top: 7px;
     font-family: var(--font-mono);
+  }
+
+  .finished {
+    display: grid;
+    gap: 5px;
+    margin-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 9px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .finished[hidden] { display: none; }
+
+  .finished-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: baseline;
+  }
+
+  .finished-head strong {
+    color: var(--lime);
+    font-family: var(--font-head);
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  .finished-head span,
+  .finished-path,
+  .finished-activation {
+    font-family: var(--font-mono);
+  }
+
+  .finished-path {
+    overflow-wrap: anywhere;
+    color: #d8fff5;
+  }
+
+  .finished-activation {
+    color: var(--light);
   }
 
   .log { margin-top: 10px; }
@@ -446,34 +487,34 @@
         <label for="lora-name">LoRA name</label>
         <input id="lora-name" type="text" value="my_first_lora">
         <div class="button-row">
-          <button>Open Pictures</button>
+          <button id="open-pictures" type="button">Open Pictures</button>
         </div>
       </div>
 
       <div class="row">
         <span class="label">Captions</span>
         <div class="pair">
-          <select aria-label="Caption fill mode">
-            <option>Optional: Fill Blank Only</option>
-            <option>Optional: Overwrite Empty + Draft</option>
-            <option>Optional: Overwrite All</option>
+          <select id="caption-mode" aria-label="Caption fill mode">
+            <option value="fill_blanks">Fill Blank Only</option>
+            <option value="overwrite_all">Overwrite All Drafts</option>
           </select>
-          <button>Caption with Brain</button>
+          <button id="caption-brain" type="button">Caption with Brain</button>
         </div>
-        <button>Open Captions</button>
+        <button id="open-captions" type="button">Open Captions</button>
       </div>
 
       <div class="row">
         <span class="label">Training</span>
         <div class="pair">
-          <select aria-label="Preset">
-            <option>Baseline</option>
-            <option>Style</option>
-            <option>Character</option>
+          <select id="preset" aria-label="Preset">
+            <option value="baseline">Character</option>
+            <option value="style">Style</option>
+            <option value="strong_style">Strong Style</option>
+            <option value="fast_test">Fast Test</option>
           </select>
-          <select aria-label="Training adapter">
-            <option>v1 (Recommended)</option>
-            <option>v2 (Experimental)</option>
+          <select id="adapter" aria-label="Training adapter">
+            <option value="v1">v1 (Recommended)</option>
+            <option value="v2">v2 (Experimental)</option>
           </select>
         </div>
         <span></span>
@@ -481,7 +522,7 @@
 
       <div class="row">
         <label for="sample-prompt">Sample prompt</label>
-        <input id="sample-prompt" type="text" placeholder="Optional">
+        <input id="sample-prompt" type="text" maxlength="160" placeholder="Optional">
         <span></span>
       </div>
 
@@ -495,40 +536,50 @@
         </div>
         <label class="field">
           <span>Checkpoints</span>
-          <select><option>4</option><option>2</option><option>8</option></select>
+          <select id="checkpoints"><option value="4">4</option><option value="2">2</option><option value="8">8</option></select>
         </label>
         <label class="field">
           <span>Learning rate</span>
-          <select><option>1e-4</option><option>5e-5</option><option>2e-4</option></select>
+          <select id="learning-rate"><option value="1e-4">1e-4</option><option value="5e-5">5e-5</option><option value="2e-4">2e-4</option></select>
         </label>
         <label class="field">
           <span>LoRA rank</span>
-          <select><option>16</option><option>8</option><option>32</option></select>
+          <select id="rank"><option value="16">16</option><option value="8">8</option><option value="32">32</option></select>
         </label>
       </div>
 
       <div class="options">
-        <label class="check"><input type="checkbox">Low VRAM mode</label>
+        <label class="check"><input id="low-vram" type="checkbox">Low VRAM mode</label>
         <span class="hint">Checkpoint every 750 steps</span>
       </div>
 
       <div class="jobs">
-        <button>Create Job</button>
-        <button class="primary" disabled>Start Training</button>
-        <button disabled>Stop Job</button>
-        <button class="danger" disabled>Delete Job</button>
+        <button id="create-job" type="button">Create Job</button>
+        <button id="start-job" class="primary" type="button">Start Training</button>
+        <button id="stop-job" type="button">Stop Job</button>
+        <button id="delete-job" class="danger" type="button">Delete Job</button>
+        <button id="job-status" type="button">Status</button>
       </div>
 
-      <div class="progress" role="progressbar" aria-label="Training progress" aria-valuemin="0" aria-valuemax="3000" aria-valuenow="540">
+      <div id="progress" class="progress" role="progressbar" aria-label="Training progress" aria-valuemin="0" aria-valuemax="3000" aria-valuenow="0">
         <div class="progress-head">
           <span>Training progress</span>
-          <strong>18%</strong>
+          <strong id="progress-percent">0%</strong>
         </div>
-        <div class="meter"><div class="fill"></div></div>
+        <div class="meter"><div id="progress-fill" class="fill"></div></div>
         <div class="progress-meta">
-          <span>540 / 3000 steps</span>
-          <span>Preview state</span>
+          <span id="progress-steps">0 / 0 steps</span>
+          <span id="progress-state">Idle</span>
         </div>
+      </div>
+
+      <div id="finished-summary" class="finished" hidden>
+        <div class="finished-head">
+          <strong id="finished-title">Finished LoRA</strong>
+          <span id="finished-meta"></span>
+        </div>
+        <div id="finished-path" class="finished-path"></div>
+        <div id="finished-activation" class="finished-activation"></div>
       </div>
     </section>
 
@@ -537,17 +588,354 @@
         <strong>Live log</strong>
         <span>current Easy LoRA job</span>
       </div>
-      <pre>Easy LoRA status check completed.
-No job created yet.</pre>
+      <pre id="log-output">Checking Easy LoRA status...</pre>
     </section>
   </main>
 
   <script>
     const steps = document.querySelector("#steps");
     const output = document.querySelector("output[for='steps']");
+    const loraName = document.querySelector("#lora-name");
+    const openPictures = document.querySelector("#open-pictures");
+    const openCaptions = document.querySelector("#open-captions");
+    const captionBrain = document.querySelector("#caption-brain");
+    const captionMode = document.querySelector("#caption-mode");
+    const preset = document.querySelector("#preset");
+    const adapter = document.querySelector("#adapter");
+    const samplePrompt = document.querySelector("#sample-prompt");
+    const checkpoints = document.querySelector("#checkpoints");
+    const learningRate = document.querySelector("#learning-rate");
+    const rank = document.querySelector("#rank");
+    const lowVram = document.querySelector("#low-vram");
+    const createJob = document.querySelector("#create-job");
+    const startJob = document.querySelector("#start-job");
+    const stopJob = document.querySelector("#stop-job");
+    const deleteJob = document.querySelector("#delete-job");
+    const jobStatus = document.querySelector("#job-status");
+    const progress = document.querySelector("#progress");
+    const progressPercent = document.querySelector("#progress-percent");
+    const progressFill = document.querySelector("#progress-fill");
+    const progressSteps = document.querySelector("#progress-steps");
+    const progressState = document.querySelector("#progress-state");
+    const finishedSummary = document.querySelector("#finished-summary");
+    const finishedTitle = document.querySelector("#finished-title");
+    const finishedMeta = document.querySelector("#finished-meta");
+    const finishedPath = document.querySelector("#finished-path");
+    const finishedActivation = document.querySelector("#finished-activation");
+    const logOutput = document.querySelector("#log-output");
+    let requestId = 0;
+    let statusInFlight = false;
+    let formHydrated = false;
+    let formEdited = false;
+    const pendingRequests = new Map();
+
+    function normalizeActionName(value) {
+      const normalized = String(value || "")
+        .trim()
+        .replace(/\s+/g, "_")
+        .replace(/[^A-Za-z0-9_-]/g, "")
+        .replace(/^[_-]+|[_-]+$/g, "");
+      return normalized || "my_first_lora";
+    }
+
+    function runModuleAction(action, params = {}) {
+      const name = normalizeActionName(loraName.value);
+      const query = new URLSearchParams({ "lora-name": name });
+      for (const [key, value] of Object.entries(params)) {
+        query.set(key, value);
+      }
+      window.location.href = `nymphs-module-action://${action}?${query.toString()}`;
+    }
+
+    function moduleAction(action, params = {}) {
+      if (!window.chrome || !window.chrome.webview) {
+        runModuleAction(action, params);
+        return Promise.resolve("");
+      }
+
+      const id = `easy-lora-${++requestId}`;
+      const args = { "lora-name": normalizeActionName(loraName.value), ...params };
+      return new Promise((resolve, reject) => {
+        pendingRequests.set(id, { resolve, reject });
+        window.chrome.webview.postMessage({
+          type: "module_action",
+          requestId: id,
+          action,
+          args
+        });
+      });
+    }
+
+    if (window.chrome && window.chrome.webview) {
+      window.chrome.webview.addEventListener("message", event => {
+        const message = event.data || {};
+        if (message.type !== "module_action_result") {
+          return;
+        }
+        const pending = pendingRequests.get(message.requestId);
+        if (!pending) {
+          return;
+        }
+        pendingRequests.delete(message.requestId);
+        if (message.ok) {
+          pending.resolve(message.output || "");
+        } else {
+          pending.reject(new Error(message.error || "Module action failed."));
+        }
+      });
+    }
+
+    function parseKeyValues(output) {
+      const values = {};
+      for (const line of String(output || "").split(/\r?\n/)) {
+        const index = line.indexOf("=");
+        if (index <= 0) {
+          continue;
+        }
+        values[line.slice(0, index)] = line.slice(index + 1);
+      }
+      return values;
+    }
+
+    function intValue(value, fallback = 0) {
+      const parsed = Number.parseInt(value, 10);
+      return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    function formatBytes(value) {
+      const bytes = intValue(value);
+      if (bytes <= 0) {
+        return "";
+      }
+      const units = ["B", "KB", "MB", "GB"];
+      let size = bytes;
+      let unit = 0;
+      while (size >= 1024 && unit < units.length - 1) {
+        size /= 1024;
+        unit += 1;
+      }
+      return `${size >= 10 || unit === 0 ? size.toFixed(0) : size.toFixed(1)} ${units[unit]}`;
+    }
+
+    function formatDate(value) {
+      if (!value) {
+        return "";
+      }
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) {
+        return "";
+      }
+      return date.toLocaleString();
+    }
+
+    function latestFinished(values) {
+      if (values.finished_loras_json) {
+        try {
+          const items = JSON.parse(values.finished_loras_json);
+          if (Array.isArray(items) && items.length > 0) {
+            return items[0];
+          }
+        } catch {
+        }
+      }
+      if (!values.latest_finished_lora) {
+        return null;
+      }
+      return {
+        display_name: values.latest_finished_lora_name,
+        path: values.latest_finished_lora,
+        size: values.latest_finished_lora_size,
+        modified: values.latest_finished_lora_modified
+      };
+    }
+
+    function applyFinishedSummary(values) {
+      const hasSelectedFinal = values.final_checkpoint_exists === "true";
+      const selected = hasSelectedFinal ? {
+        label: "Finished",
+        name: values.display_name || values.normalized_name || "LoRA",
+        path: values.final_checkpoint,
+        size: values.final_checkpoint_size,
+        modified: values.final_checkpoint_modified,
+        activation: values.activation_text
+      } : null;
+      const latest = latestFinished(values);
+      const item = selected || (latest ? {
+        label: "Latest finished",
+        name: latest.display_name || latest.name || values.latest_finished_lora_name || "LoRA",
+        path: latest.path || values.latest_finished_lora || "",
+        size: latest.size || values.latest_finished_lora_size,
+        modified: latest.modified || values.latest_finished_lora_modified,
+        activation: latest.activation_text || ""
+      } : null);
+
+      if (!item || !item.path) {
+        finishedSummary.hidden = true;
+        return;
+      }
+
+      const count = intValue(values.finished_lora_count);
+      const pieces = [formatBytes(item.size), formatDate(item.modified)];
+      if (count > 0) {
+        pieces.push(`${count} finished total`);
+      }
+      finishedSummary.hidden = false;
+      finishedTitle.textContent = `${item.label}: ${item.name}`;
+      finishedMeta.textContent = pieces.filter(Boolean).join(" | ");
+      finishedPath.textContent = item.path;
+      finishedActivation.textContent = item.activation ? `Activation: ${item.activation}` : "Activation text not saved.";
+    }
+
+    function setSelectValue(select, value, label = value) {
+      if (!value) {
+        return;
+      }
+      const exists = Array.from(select.options).some(option => option.value === value);
+      if (!exists) {
+        select.add(new Option(label, value));
+      }
+      select.value = value;
+    }
+
+    function setRangeValue(range, value) {
+      const parsed = intValue(value, intValue(range.value));
+      const min = intValue(range.min, parsed);
+      const max = intValue(range.max, parsed);
+      const clamped = Math.max(min, Math.min(max, parsed));
+      range.value = String(clamped);
+      output.textContent = range.value;
+    }
+
+    function samplePromptFromStatus(values) {
+      if (!values.form_sample_prompt_json) {
+        return "";
+      }
+      try {
+        return JSON.parse(values.form_sample_prompt_json);
+      } catch {
+        return values.form_sample_prompt_json;
+      }
+    }
+
+    function applyFormSettings(values) {
+      if (formHydrated || formEdited || values.form_settings_exists !== "true") {
+        return;
+      }
+
+      setSelectValue(preset, values.form_preset, values.form_preset);
+      setSelectValue(adapter, values.form_adapter, values.form_adapter);
+      setRangeValue(steps, values.form_steps);
+      setSelectValue(checkpoints, values.form_checkpoints);
+      setSelectValue(learningRate, values.form_learning_rate);
+      setSelectValue(rank, values.form_rank);
+      lowVram.checked = values.form_low_vram === "true";
+      samplePrompt.value = samplePromptFromStatus(values);
+      formHydrated = true;
+    }
+
+    function applyStatus(values) {
+      const percent = Math.max(0, Math.min(100, intValue(values.progress_percent)));
+      const current = intValue(values.progress_current);
+      const total = intValue(values.progress_total);
+      const state = values.progress_text || values.job_status || "Idle";
+      const jobState = values.job_status ? `AI Toolkit: ${values.job_status}` : values.api_running === "true" ? "AI Toolkit ready" : "AI Toolkit closed";
+      let logTail = "";
+
+      if (values.log_tail_json) {
+        try {
+          logTail = JSON.parse(values.log_tail_json);
+        } catch {
+          logTail = values.log_tail_json;
+        }
+      }
+
+      progress.setAttribute("aria-valuenow", String(current || percent));
+      progress.setAttribute("aria-valuemax", String(total || 100));
+      progressPercent.textContent = `${percent}%`;
+      progressFill.style.width = `${percent}%`;
+      progressSteps.textContent = total > 0 ? `${current} / ${total} steps` : "No steps yet";
+      progressState.textContent = jobState;
+      applyFormSettings(values);
+      applyFinishedSummary(values);
+      logOutput.textContent = `${state}\n${logTail || "No live log available yet."}`;
+    }
+
+    async function refreshStatus() {
+      if (statusInFlight) {
+        return;
+      }
+      statusInFlight = true;
+      try {
+        const output = await moduleAction("job_status");
+        applyStatus(parseKeyValues(output));
+      } catch (error) {
+        logOutput.textContent = error.message || String(error);
+      } finally {
+        statusInFlight = false;
+      }
+    }
+
+    function captionFocus() {
+      return preset.value === "style" || preset.value === "strong_style" ? "style" : "character";
+    }
+
+    function encodeUtf8Base64(value) {
+      const bytes = new TextEncoder().encode(value);
+      let binary = "";
+      for (const byte of bytes) {
+        binary += String.fromCharCode(byte);
+      }
+      return btoa(binary);
+    }
+
+    function createJobParams() {
+      const params = {
+        preset: preset.value,
+        adapter: adapter.value,
+        steps: steps.value,
+        checkpoints: checkpoints.value,
+        "learning-rate": learningRate.value,
+        rank: rank.value,
+        "low-vram": lowVram.checked ? "true" : "false"
+      };
+      const prompt = samplePrompt.value.trim();
+      if (prompt) {
+        const encodedPrompt = encodeUtf8Base64(prompt);
+        if (encodedPrompt.length <= 256) {
+          params["sample-prompt-b64"] = encodedPrompt;
+        }
+      }
+      return params;
+    }
+
     steps.addEventListener("input", () => {
       output.textContent = steps.value;
     });
+    for (const control of [preset, adapter, steps, checkpoints, learningRate, rank, lowVram, samplePrompt, captionMode]) {
+      control.addEventListener("input", () => {
+        formEdited = true;
+      });
+      control.addEventListener("change", () => {
+        formEdited = true;
+      });
+    }
+    loraName.addEventListener("input", () => {
+      formHydrated = false;
+      formEdited = false;
+    });
+    openPictures.addEventListener("click", () => runModuleAction("open_pictures"));
+    openCaptions.addEventListener("click", () => runModuleAction("open_captions"));
+    captionBrain.addEventListener("click", () => runModuleAction("caption_brain", {
+      "caption-mode": captionMode.value,
+      "training-focus": captionFocus()
+    }));
+    createJob.addEventListener("click", () => runModuleAction("create_job", createJobParams()));
+    startJob.addEventListener("click", () => runModuleAction("start_job"));
+    stopJob.addEventListener("click", () => runModuleAction("stop_job"));
+    deleteJob.addEventListener("click", () => runModuleAction("delete_job"));
+    jobStatus.addEventListener("click", refreshStatus);
+    refreshStatus();
+    setInterval(refreshStatus, 5000);
   </script>
 </body>
 </html>
