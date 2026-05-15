@@ -15,6 +15,7 @@ node_ready=false
 ui_ready=false
 adapter_ready=false
 model_ready=false
+asset_marker_ready=false
 assets_ready=false
 official_ui_running=false
 gradio_running=false
@@ -68,9 +69,28 @@ if [[ "${installed}" == "true" ]]; then
   [[ -x "${LORA_VENV_DIR}/bin/python" ]] && venv_ready=true
   [[ -x "${LORA_NODE_DIR}/bin/node" ]] && node_ready=true
   [[ -d "${LORA_UI_DIR}/.next" ]] && ui_ready=true
-  [[ -f "${LORA_ADAPTER_DIR}/selected_adapter_path.txt" ]] && adapter_ready=true
-  [[ -d "${LORA_MODEL_DIR}/transformer" && -d "${LORA_MODEL_DIR}/text_encoder" && -d "${LORA_MODEL_DIR}/tokenizer" && -f "${LORA_MODEL_DIR}/vae/diffusion_pytorch_model.safetensors" ]] && model_ready=true
-  [[ "${adapter_ready}" == "true" && "${model_ready}" == "true" ]] && assets_ready=true
+  [[ -f "${LORA_ASSET_READY_MARKER}" ]] && asset_marker_ready=true
+
+  if [[ -f "${LORA_ADAPTER_DIR}/selected_adapter_path.txt" ]]; then
+    selected_adapter="$(head -n 1 "${LORA_ADAPTER_DIR}/selected_adapter_path.txt" 2>/dev/null || true)"
+    [[ -n "${selected_adapter}" && -s "${selected_adapter}" ]] && adapter_ready=true
+  fi
+
+  if [[ -s "${LORA_MODEL_DIR}/model_index.json" &&
+        -s "${LORA_MODEL_DIR}/transformer/diffusion_pytorch_model-00001-of-00003.safetensors" &&
+        -s "${LORA_MODEL_DIR}/transformer/diffusion_pytorch_model-00002-of-00003.safetensors" &&
+        -s "${LORA_MODEL_DIR}/transformer/diffusion_pytorch_model-00003-of-00003.safetensors" &&
+        -s "${LORA_MODEL_DIR}/transformer/diffusion_pytorch_model.safetensors.index.json" &&
+        -s "${LORA_MODEL_DIR}/text_encoder/model-00001-of-00003.safetensors" &&
+        -s "${LORA_MODEL_DIR}/text_encoder/model-00002-of-00003.safetensors" &&
+        -s "${LORA_MODEL_DIR}/text_encoder/model-00003-of-00003.safetensors" &&
+        -s "${LORA_MODEL_DIR}/text_encoder/model.safetensors.index.json" &&
+        -s "${LORA_MODEL_DIR}/vae/diffusion_pytorch_model.safetensors" &&
+        -s "${LORA_MODEL_DIR}/tokenizer/merges.txt" ]]; then
+    model_ready=true
+  fi
+
+  [[ "${asset_marker_ready}" == "true" && "${adapter_ready}" == "true" && "${model_ready}" == "true" ]] && assets_ready=true
 fi
 
 if [[ "${installed}" == "true" ]] && lora_port_open "${LORA_UI_PORT}" >/dev/null 2>&1; then
@@ -118,6 +138,7 @@ node_ready=${node_ready}
 ui_ready=${ui_ready}
 adapter_ready=${adapter_ready}
 model_ready=${model_ready}
+asset_marker_ready=${asset_marker_ready}
 assets_ready=${assets_ready}
 official_ui_running=${official_ui_running}
 gradio_running=${gradio_running}

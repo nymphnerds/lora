@@ -10,6 +10,7 @@ if [[ ! -x "${LORA_VENV_DIR}/bin/python" ]]; then
 fi
 
 mkdir -p "${LORA_MODEL_DIR}" "${LORA_ADAPTER_DIR}"
+rm -f "${LORA_ASSET_READY_MARKER}"
 export HF_HUB_DISABLE_PROGRESS_BARS=1
 
 echo "Preparing LoRA training assets."
@@ -236,3 +237,11 @@ print(f"Turbo training adapter selected: {selected_adapter}", flush=True)
 print("FETCH_ASSETS_PROGRESS status=complete phase=ready", flush=True)
 print("LoRA training assets ready.", flush=True)
 PYEOF
+
+{
+  echo "version=1"
+  echo "model_dir=${LORA_MODEL_DIR}"
+  echo "adapter_dir=${LORA_ADAPTER_DIR}"
+  echo "completed_at=$(date -Iseconds)"
+} > "${LORA_ASSET_READY_MARKER}"
+echo "Training asset marker written: ${LORA_ASSET_READY_MARKER}"
