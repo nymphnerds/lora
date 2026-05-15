@@ -890,6 +890,17 @@
         return;
       }
 
+      progressState.textContent = "Checking AI Toolkit...";
+      try {
+        const output = await moduleAction("job_status");
+        const values = parseKeyValues(output);
+        applyStatus(values);
+        if (values.api_running === "true") {
+          return;
+        }
+      } catch {
+      }
+
       progressState.textContent = "Starting AI Toolkit...";
       await runEasyAction("easy_lora", {}, {
         startingMessage: "Starting AI Toolkit backend...\nEasy LoRA is ready while the backend wakes up."

@@ -39,3 +39,8 @@ finally:
     s.close()
 PY
 }
+
+lora_queue_worker_running() {
+  pgrep -u "$(id -u)" -f "(^|/)node dist/cron/worker[.]js($| )" >/dev/null 2>&1 ||
+    pgrep -u "$(id -u)" -f "dist/cron/worker[.]js" >/dev/null 2>&1
+}

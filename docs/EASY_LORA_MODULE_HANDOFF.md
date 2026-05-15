@@ -79,16 +79,25 @@ NymphsModules/lora
 
 ## Current State Snapshot
 
-This section reflects the local modular build after the 2026-05-15 install and
-asset-fetch testing.
+This section reflects the local modular build after the 2026-05-15 install,
+asset-fetch, Easy LoRA wiring, status UX, and button-label cleanup passes.
 
 The module is installable and visible in the standard Manager module shell.
 Easy LoRA now has the original module action flow wired through AI Toolkit,
 including local/API current-job settings import into the form.
 
+Relevant pushed heads before this handoff update:
+
+```text
+NymphsCore modular: 0088baa  module UI rail label is Close UI
+```
+
+The live test WSL install was updated in place to LoRA `0.1.30` without
+reinstalling or redownloading training assets.
+
 ### Done
 
-- `LoRA` exists as a first-party module repo with manifest version `0.1.28`.
+- `LoRA` exists as a first-party module repo with manifest version `0.1.30`.
 - The Manager can install, update, repair, uninstall, and delete LoRA data using
   the standard module lifecycle rail.
 - Base install creates the isolated trainer root:
@@ -150,6 +159,17 @@ ostris/zimage_turbo_training_adapter
 - The Manager now has a generic WebView2 `module_action` message bridge for
   installed manifest-declared module actions. Easy LoRA uses it to poll
   `job_status` in-place without navigating away to the Manager Logs page.
+- The Manager LoRA details/status display now separates module readiness from
+  AI Toolkit backend state. `running=true` from the module means the AI Toolkit
+  UI/worker is running, not that training is active.
+- The LoRA action labels now distinguish the surfaces:
+
+```text
+Easy LoRA         -> beginner UI inside Manager
+Open AI Toolkit   -> advanced AI Toolkit backend/UI
+Stop AI Toolkit   -> stops the AI Toolkit UI/worker only
+```
+
 - Easy LoRA now replaces the placeholder progress/log block with in-place
   `job_status` results: parsed percent, step count, AI Toolkit state, progress
   text, final checkpoint completion, and log tail.
@@ -160,6 +180,9 @@ ostris/zimage_turbo_training_adapter
   job config when available, with module YAML/metadata as a no-launch fallback.
   Easy LoRA hydrates preset, steps, checkpoint count, learning rate, rank,
   adapter, low-VRAM mode, and sample prompt once per selected LoRA name.
+- Easy LoRA now checks `job_status` before starting AI Toolkit on page load. If
+  the AI Toolkit API is already running, reopening Easy LoRA skips the startup
+  action and hydrates from status immediately.
 - `Delete Data` is separate from uninstall and is available through the
   universal rail.
 
@@ -290,6 +313,33 @@ Easy LoRA saved-job settings import into the form, using AI Toolkit job_config
 when available and local YAML/metadata as fallback.
 ```
 
+New in module version `0.1.29`:
+
+```text
+Manager action labels changed from AI Toolkit / Stop LoRA to
+Open AI Toolkit / Stop AI Toolkit.
+```
+
+New in module version `0.1.30`:
+
+```text
+Easy LoRA reopen fast path. The page checks job_status first and only starts
+AI Toolkit if the API is not already running. lora_easy_lora.sh also skips the
+UI/worker launchers when they are already alive.
+```
+
+Related Core modular change:
+
+```text
+NymphsCore modular 6274d62:
+LoRA stopped        -> LoRA: Ready
+AI Toolkit running  -> LoRA: AI Toolkit running
+active train job    -> LoRA: Training active / LoRA: Training queued
+
+The details pane now shows AI Toolkit UI/worker state, assets, counts, and
+folder path instead of generic Health/Runtime/Data booleans.
+```
+
 ## Current Architecture Decision
 
 The Manager should not regain a hardcoded LoRA page.
@@ -344,7 +394,8 @@ Module actions should include:
 
 ```text
 Easy LoRA
-AI Toolkit
+Open AI Toolkit
+Stop AI Toolkit
 Open LoRAs
 Open Datasets
 Logs
@@ -352,7 +403,10 @@ Logs
 
 `Easy LoRA` opens the module-owned beginner HTML UI.
 
-`AI Toolkit` opens the official AI Toolkit UI. It may open in Manager WebView2 or external browser depending on current Manager support/action result.
+`Open AI Toolkit` opens the official AI Toolkit UI. It may open in Manager WebView2 or external browser depending on current Manager support/action result.
+
+`Stop AI Toolkit` stops the AI Toolkit UI/worker. It does not uninstall LoRA,
+delete data, or mean that the LoRA module is no longer ready.
 
 Gradio can remain as a dev/hidden script if useful, but it should not be part of the beginner Easy LoRA surface.
 
