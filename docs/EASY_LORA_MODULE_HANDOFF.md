@@ -1,6 +1,6 @@
 # Easy LoRA Module Handoff
 
-Date: 2026-05-14
+Date: 2026-05-15
 
 ## Goal
 
@@ -75,6 +75,127 @@ Current module repo:
 
 ```text
 NymphsModules/lora
+```
+
+## Current State Snapshot
+
+This section reflects the local modular build after the 2026-05-15 install and
+asset-fetch testing.
+
+The module is installable and visible in the standard Manager module shell.
+It is not yet a working Easy LoRA trainer workflow.
+
+### Done
+
+- `LoRA` exists as a first-party module repo with manifest version `0.1.11`.
+- The Manager can install, update, repair, uninstall, and delete LoRA data using
+  the standard module lifecycle rail.
+- Base install creates the isolated trainer root:
+
+```text
+/home/nymph/ZImage-Trainer
+```
+
+- Base install prepares the AI Toolkit checkout, Python venv, local Node 20,
+  official AI Toolkit UI dependencies/build, Prisma DB, launcher scripts,
+  module scripts, and module UI files.
+- Base install no longer downloads the huge training weights.
+- `Fetch Training Assets` is a separate explicit action and now reports useful
+  progress while downloading/resuming:
+
+```text
+Tongyi-MAI/Z-Image-Turbo
+ostris/zimage_turbo_training_adapter
+```
+
+- LoRA status reports `assets_ready=true` when the model bundle, adapter, and
+  `.training-assets-ready` marker are all present.
+- The Manager details pane only shows the `Fetch Training Assets` next-step
+  prompt while the module state is actually `Needs assets`.
+- `Easy LoRA` opens `ui/manager.html` inside Manager WebView2.
+- `AI Toolkit`, `Open Datasets`, `Open LoRAs`, and `Logs` actions are exposed
+  as module actions.
+- `Delete Data` is separate from uninstall and is available through the
+  universal rail.
+
+### Partially Done
+
+- `ui/manager.html` is the intended compact Easy LoRA surface, but it is mostly
+  static HTML right now.
+- The Easy LoRA page visually contains the right controls, but the controls do
+  not yet create jobs, start/stop training, delete jobs, caption with Brain, or
+  poll live AI Toolkit state.
+- The Manager has a basic local HTML action hook:
+
+```text
+nymphs-module-action://<action>?key=value
+```
+
+It can run installed module entrypoints declared in `nymph.json`, but current
+behavior sends the user to the Manager Logs page and only updates
+`ModuleUiStatus`. It is useful for simple one-shot actions, but not sufficient
+by itself for the polished in-place Easy LoRA workflow shown in the HTML.
+- The old main-branch AI Toolkit job flow still exists in `NymphsCore`
+  Manager code and should be ported, not rewritten from memory.
+
+### Not Done
+
+The following are not module-owned yet:
+
+- dataset metadata refresh from the Easy LoRA UI
+- `Open Pictures` for the selected LoRA/dataset
+- `Open Captions` for the selected `metadata.csv`
+- `Caption with Brain`
+- sidecar `.txt` caption mirroring
+- AI Toolkit job YAML generation from Easy LoRA form values
+- AI Toolkit JSON `job_config` generation from Easy LoRA form values
+- AI Toolkit job upsert/register through `/api/jobs`
+- current job lookup/import into the Easy LoRA UI
+- Start Training through the AI Toolkit queue
+- Stop Job through AI Toolkit job stop/mark-stopped endpoints
+- Delete Job through AI Toolkit job delete endpoint
+- live job log polling
+- real progress parsing inside Easy LoRA
+- final checkpoint detection
+- finished LoRA discovery/summary in the Easy LoRA page
+
+### Current User-Visible Reality
+
+When `Easy LoRA` opens today, it is a front-end shell. The displayed progress
+bar and log text are placeholder/mock state:
+
+```text
+Training progress 18%
+Easy LoRA status check completed.
+No job created yet.
+```
+
+Do not treat this as wired behavior.
+
+### Current Module Actions
+
+Declared in `nymph.json`:
+
+```text
+easy_lora      -> opens module UI
+fetch_assets   -> downloads/resumes training assets
+aitoolkit      -> starts/opens official AI Toolkit
+open_datasets  -> opens /home/nymph/ZImage-Trainer/datasets
+open_loras     -> opens /home/nymph/ZImage-Trainer/loras
+logs           -> tails LoRA/AI Toolkit logs
+```
+
+Not yet declared or implemented:
+
+```text
+open_pictures
+open_captions
+caption_brain
+create_job
+start_job
+stop_job
+delete_job
+job_status
 ```
 
 ## Current Architecture Decision
@@ -203,6 +324,39 @@ Nymphs Trainer
 Z-Image Trainer as the module/page title
 ```
 
+## Easy LoRA Wiring Decision
+
+The current Manager can intercept this URL scheme from local module HTML:
+
+```text
+nymphs-module-action://create_job?lora=my_first_lora
+```
+
+The action name must be present in the module capabilities, which currently
+come from `entrypoints` in `nymph.json`.
+
+Current limits:
+
+- query args become CLI flags, for example `?lora=my_first_lora` becomes
+  `--lora my_first_lora`
+- argument values are intentionally restricted to short safe strings
+- the Manager currently changes to the Logs page while the action runs
+- the HTML does not receive a structured response payload
+
+This is enough for smoke-test buttons and simple actions. It is not enough for
+the final Easy LoRA experience unless the UX accepts leaving the page during
+each action.
+
+Recommended approach for the real trainer UI:
+
+1. Add a module-owned lightweight local helper API for Easy LoRA, or extend the
+   Manager module-UI bridge to support structured request/response without
+   leaving the WebView.
+2. Keep all LoRA/AI Toolkit logic module-owned.
+3. Let the HTML poll `job_status` and `job_log` frequently while a job exists.
+4. Use the existing Manager action scheme only as a fallback for one-shot
+   actions until a better bridge exists.
+
 ## The Critical Job Flow
 
 Easy LoRA must send jobs to AI Toolkit the way `main` does.
@@ -229,6 +383,87 @@ python run.py jobs/name.yaml
 ```
 
 That direct runner exists in the old script and may be useful as fallback, but the product flow is AI Toolkit registration and queue control.
+
+## Main-Branch Port Map
+
+The old working behavior is concentrated in these Manager methods. These are
+the practical port checklist.
+
+From `Manager/apps/NymphsCoreManager/ViewModels/MainWindowViewModel.cs`:
+
+```text
+RefreshZImageTrainerStatusAsync
+RefreshZImageTrainerLiveStateAsync
+CreateZImageTrainerJobAsync
+OpenZImageTrainerPicturesFolderAsync
+OpenZImageTrainerCaptionsFileAsync
+DraftZImageTrainerCaptionsAsync
+StartZImageTrainingAsync
+StartZImageTrainerQueueAsync
+StopZImageTrainerQueueAsync
+DeleteZImageTrainerJobAsync
+ViewZImageTrainerJobAsync
+LaunchZImageTrainerOfficialUiAsync
+KillZImageTrainerOfficialUiAsync
+TryImportZImageTrainerJobSettingsAsync
+ApplyZImageTrainerPresetDefaults
+UpdateZImageTrainerProgressFromLine
+```
+
+From `Manager/apps/NymphsCoreManager/Services/InstallerWorkflowService.cs`:
+
+```text
+GetZImageTrainerStatusAsync
+GetZImageTrainerDatasetNamesAsync
+GetZImageTrainerJobSettingsAsync
+CreateZImageTrainerJobAsync
+RunZImageTrainerJobAsync
+StartZImageTrainerQueueAsync
+StopZImageTrainerQueueAsync
+DeleteZImageTrainerJobAsync
+GetZImageTrainerJobIdAsync
+TryGetZImageTrainerJobLogAsync
+StopZImageTrainerJobAsync
+EnsureZImageTrainerPicturesFolderAsync
+PrepareZImageTrainerMetadataAsync
+EnsureZImageTrainerTrainingAdapterAsync
+DraftZImageTrainerCaptionsAsync
+BuildZImageTrainerConfig
+BuildZImageTrainerConfigJson
+BuildZImageLoraMetadataJson
+TryRegisterZImageTrainerJobInOfficialUiAsync
+FindOfficialUiJobIdAsync
+QueueOfficialUiJobAsync
+EnsureAiToolkitApiReadyAsync
+EnsureAiToolkitSettingsConfiguredAsync
+EnrichZImageTrainerStatusFromAiToolkitAsync
+TryGetAiToolkitDatasetVisibilityAsync
+UpsertAiToolkitJobViaApiAsync
+TryGetAiToolkitJobByRefAsync
+GetAiToolkitActiveTrainJobAsync
+WaitForAiToolkitJobLiveStateAsync
+SendAiToolkitApiRequestAsync
+ReadTrainerMetadata
+WriteTrainerMetadata
+SyncTrainerCaptionTextFiles
+```
+
+The port should move this behavior into module-owned helpers, probably:
+
+```text
+scripts/lora_job.py
+scripts/lora_caption_brain.sh
+scripts/lora_caption_brain.py
+scripts/lora_create_job.sh
+scripts/lora_start_job.sh
+scripts/lora_stop_job.sh
+scripts/lora_delete_job.sh
+scripts/lora_job_status.sh
+scripts/lora_open_pictures.sh
+scripts/lora_open_captions.sh
+```
+
+Keep the C# code open during implementation and port behavior in small slices.
 
 ## AI Toolkit API Endpoints From Main
 
@@ -412,6 +647,23 @@ Large training assets are intentionally a second explicit step:
 
 This keeps base install from looking hung while multi-GB Hugging Face weights download.
 
+Asset reality:
+
+- Z-Image Turbo LoRA training still needs the full
+  `Tongyi-MAI/Z-Image-Turbo` training bundle.
+- Unlike Z-Image/TRELLIS inference modules, this is not currently a clean
+  `int4_r32` / `Q5_K_M` style weight dropdown.
+- The adapter repo contains separate adapter files, currently observed as:
+
+```text
+zimage_turbo_training_adapter_v1.safetensors
+zimage_turbo_training_adapter_v2.safetensors
+```
+
+- The UI should expose adapter selection for training jobs.
+- A future `Fetch Training Assets` selector could download `v1`, `v2`, or both,
+  but the base Z-Image Turbo model bundle remains required for training.
+
 Install root:
 
 ```text
@@ -481,37 +733,71 @@ This can be implemented in the Easy LoRA HTML plus module helper endpoint/action
 
 ## Open Questions
 
-1. Whether Easy LoRA HTML should poll status through a lightweight module action, or rely on Manager action output only.
-2. Whether AI Toolkit should open inside Manager WebView2 by default or external browser by default.
+1. Whether Easy LoRA should use a module-owned local helper API or a richer
+   Manager WebView2 bridge for in-page structured actions.
+2. Whether AI Toolkit should open inside Manager WebView2 by default or external
+   browser by default.
 3. Whether to expose Gradio as a hidden/dev action.
 4. Whether preset labels should stay `Strong Style` or become `Style High Noise`.
-5. How generic to make future training targets beyond Z-Image Turbo.
+5. Whether LoRA should download both adapter weights by default forever, or
+   expose an adapter/weight selector during `Fetch Training Assets`.
+6. How generic to make future training targets beyond Z-Image Turbo.
 
 ## Recommended Implementation Order
 
-1. Finish current `nymph.json` contract cleanup.
-2. Move/copy main helper scripts into the LoRA module.
-3. Add module-owned Python helper for AI Toolkit API/job operations.
-4. Add module actions:
+Completed already:
 
 ```text
-easy_lora
-aitoolkit
-kill_aitoolkit
-open_loras
-open_datasets
+install/update/status/uninstall wrappers
+separate training asset fetch
+standard lifecycle rail support
+Easy LoRA local HTML surface
+AI Toolkit/Open Datasets/Open LoRAs/Logs module actions
+```
+
+Next implementation pass:
+
+1. Add module-owned helpers copied/ported from `NymphsCore origin/main`.
+2. Start with dataset/caption file operations that do not require AI Toolkit:
+
+```text
 open_pictures
 open_captions
-caption_brain
+prepare_metadata
+sync_caption_txt
+```
+
+3. Add `job_status` that reports real state for one selected LoRA name:
+
+```text
+dataset exists/missing
+metadata exists/missing
+image_count
+missing_caption_count
+selected AI Toolkit job id/state/info
+latest log tail
+progress current/total/percent
+final checkpoint exists
+```
+
+4. Add module-owned Python helper for AI Toolkit API/job operations.
+5. Add job lifecycle module actions:
+
+```text
 create_job
 start_job
 stop_job
 delete_job
-job_status
 ```
 
-5. Build compact `ui/manager.html` for Easy LoRA.
-6. Declare `ui.manager_ui.title = "Easy LoRA"`.
-7. Test install/repair/status/open/logs/uninstall.
-8. Test full AI Toolkit job roundtrip with a tiny dataset.
-9. Only after that, polish UI styling.
+6. Add Brain caption helpers and wire `Caption with Brain`.
+7. Decide and implement the Easy LoRA HTML communication path:
+
+```text
+module-owned local helper API
+or richer Manager WebView2 bridge
+```
+
+8. Wire `ui/manager.html` to real status/actions.
+9. Test full AI Toolkit job roundtrip with a tiny dataset.
+10. Only after that, polish UI styling.
