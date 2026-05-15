@@ -667,22 +667,29 @@
       });
     }
 
-    async function runEasyAction(action, params = {}) {
+    async function runEasyAction(action, params = {}, options = {}) {
       if (actionInFlight) {
         return;
       }
       actionInFlight = true;
+      let shouldRefresh = true;
       try {
+        if (options.startingMessage) {
+          logOutput.textContent = options.startingMessage;
+        }
         const output = await moduleAction(action, params);
         const trimmed = String(output || "").trim();
         if (trimmed) {
           logOutput.textContent = trimmed;
         }
-        await refreshStatus();
       } catch (error) {
         logOutput.textContent = error.message || String(error);
+        shouldRefresh = false;
       } finally {
         actionInFlight = false;
+        if (shouldRefresh) {
+          await refreshStatus(true);
+        }
       }
     }
 
@@ -880,8 +887,8 @@
       logOutput.textContent = `${state}\n${logTail || "No live log available yet."}`;
     }
 
-    async function refreshStatus() {
-      if (statusInFlight || actionInFlight) {
+    async function refreshStatus(force = false) {
+      if (statusInFlight || (actionInFlight && !force)) {
         return;
       }
       statusInFlight = true;
@@ -893,6 +900,18 @@
       } finally {
         statusInFlight = false;
       }
+    }
+
+    async function ensureBackendOnLoad() {
+      if (!window.chrome || !window.chrome.webview) {
+        await refreshStatus(true);
+        return;
+      }
+
+      progressState.textContent = "Starting AI Toolkit...";
+      await runEasyAction("easy_lora", {}, {
+        startingMessage: "Starting AI Toolkit backend...\nEasy LoRA is ready while the backend wakes up."
+      });
     }
 
     function captionFocus() {
@@ -953,8 +972,8 @@
     startJob.addEventListener("click", () => runEasyAction("start_job"));
     stopJob.addEventListener("click", () => runEasyAction("stop_job"));
     deleteJob.addEventListener("click", () => runEasyAction("delete_job"));
-    jobStatus.addEventListener("click", refreshStatus);
-    refreshStatus();
+    jobStatus.addEventListener("click", () => refreshStatus(true));
+    ensureBackendOnLoad();
     setInterval(refreshStatus, 5000);
   </script>
 </body>
