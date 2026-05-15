@@ -26,8 +26,8 @@ echo "LoRA: preparing isolated AI Toolkit sidecar."
 mkdir -p "$TRAINER_ROOT" "$DATASET_ROOT" "$LORA_ROOT" "$LOG_ROOT" "$JOB_ROOT" "$CONFIG_ROOT" "$BIN_ROOT" "$MODEL_ROOT" "$ADAPTER_ROOT"
 
 echo "Stopping any running trainer UIs before repair..."
-pkill -u "$(id -u)" -f "next start --port ${UI_PORT}|dist/cron/worker.js" || true
-pkill -u "$(id -u)" -f "concurrently.*dist/cron/worker.js.*next start --port ${UI_PORT}" || true
+pkill -u "$(id -u)" -f "next start --port ${UI_PORT}|dist/cron/worker[.]js" || true
+pkill -u "$(id -u)" -f "concurrently.*dist/cron/worker[.]js.*next start --port ${UI_PORT}" || true
 pkill -u "$(id -u)" -f "concurrently.*next start --port ${UI_PORT}" || true
 pkill -u "$(id -u)" -f "ui/node_modules/.bin/concurrently.*next start --port ${UI_PORT}" || true
 pkill -u "$(id -u)" -f "server_port=${GRADIO_PORT}.*flux_train_ui|flux_train_ui.py" || true
@@ -414,7 +414,7 @@ WORKER_LOG="$TRAINER_ROOT/logs/aitk-worker.log"
 mkdir -p "$(dirname "$WORKER_LOG")"
 export PATH="$TRAINER_ROOT/ai-toolkit/venv/bin:$NODE_BIN_DIR:$UI_DIR/node_modules/.bin:$PATH"
 
-if pgrep -u "$(id -u)" -f "(^|/)node dist/cron/worker.js($| )" >/dev/null 2>&1; then
+if pgrep -u "$(id -u)" -f "(^|/)node dist/cron/worker[.]js($| )" >/dev/null 2>&1; then
   echo "AI Toolkit queue worker already running."
   exit 0
 fi
@@ -437,8 +437,18 @@ cat > "$BIN_ROOT/ztrain-stop-queue-worker" <<'QUEUE_WORKER_STOP_EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 
-pkill -u "$(id -u)" -f "concurrently.*dist/cron/worker.js.*next start --port ${ZIMAGE_TRAINER_UI_PORT:-8675}" || true
-pkill -u "$(id -u)" -f "(^|/)node dist/cron/worker.js($| )" || true
+kill_matches() {
+  local pattern="$1"
+  local pid
+  while read -r pid; do
+    [[ -n "$pid" ]] || continue
+    [[ "$pid" == "$$" || "$pid" == "$PPID" ]] && continue
+    kill "$pid" >/dev/null 2>&1 || true
+  done < <(pgrep -u "$(id -u)" -f "$pattern" 2>/dev/null || true)
+}
+
+kill_matches "concurrently.*dist/cron/worker[.]js.*next start --port ${ZIMAGE_TRAINER_UI_PORT:-8675}"
+kill_matches "(^|/)node dist/cron/worker[.]js($| )"
 echo "AI Toolkit queue worker stopped."
 QUEUE_WORKER_STOP_EOF
 
@@ -509,13 +519,24 @@ cat > "$BIN_ROOT/ztrain-stop-official-ui" <<'EOF'
 set -euo pipefail
 
 UI_PORT="${ZIMAGE_TRAINER_UI_PORT:-8675}"
-pkill -u "$(id -u)" -f "next start --port ${UI_PORT}" || true
-pkill -u "$(id -u)" -f "node_modules/.bin/next start --port ${UI_PORT}" || true
-pkill -u "$(id -u)" -f "concurrently.*dist/cron/worker.js.*next start --port ${UI_PORT}" || true
-pkill -u "$(id -u)" -f "concurrently.*next start --port ${UI_PORT}" || true
-pkill -u "$(id -u)" -f "ui/node_modules/.bin/concurrently.*next start --port ${UI_PORT}" || true
-pkill -u "$(id -u)" -f "next-server" || true
-pkill -u "$(id -u)" -f "(^|/)node dist/cron/worker.js($| )" || true
+
+kill_matches() {
+  local pattern="$1"
+  local pid
+  while read -r pid; do
+    [[ -n "$pid" ]] || continue
+    [[ "$pid" == "$$" || "$pid" == "$PPID" ]] && continue
+    kill "$pid" >/dev/null 2>&1 || true
+  done < <(pgrep -u "$(id -u)" -f "$pattern" 2>/dev/null || true)
+}
+
+kill_matches "next start --port ${UI_PORT}"
+kill_matches "node_modules/.bin/next start --port ${UI_PORT}"
+kill_matches "concurrently.*dist/cron/worker[.]js.*next start --port ${UI_PORT}"
+kill_matches "concurrently.*next start --port ${UI_PORT}"
+kill_matches "ui/node_modules/.bin/concurrently.*next start --port ${UI_PORT}"
+kill_matches "next-server"
+kill_matches "(^|/)node dist/cron/worker[.]js($| )"
 for _ in {1..40}; do
   if ! ss -ltn 2>/dev/null | grep -q ":${UI_PORT} "; then
     echo "AI Toolkit UI stopped."

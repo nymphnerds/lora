@@ -101,7 +101,7 @@ if [[ "${installed}" == "true" ]] && lora_port_open "${LORA_GRADIO_PORT}" >/dev/
   gradio_running=true
 fi
 
-if [[ "${installed}" == "true" ]] && pgrep -u "$(id -u)" -f "(^|/)node dist/cron/worker.js($| )" >/dev/null 2>&1; then
+if [[ "${installed}" == "true" ]] && pgrep -u "$(id -u)" -f "(^|/)node dist/cron/worker[.]js($| )" >/dev/null 2>&1; then
   worker_running=true
 fi
 
