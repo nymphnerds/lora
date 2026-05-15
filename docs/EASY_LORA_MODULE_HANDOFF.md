@@ -86,10 +86,12 @@ The module is installable and visible in the standard Manager module shell.
 Easy LoRA now has the original module action flow wired through AI Toolkit,
 including local/API current-job settings import into the form.
 
-Relevant pushed heads before this handoff update:
+Current pushed heads:
 
 ```text
-NymphsCore modular: 0088baa  module UI rail label is Close UI
+NymphsModules/lora main:              4a846ea  LoRA 0.1.34
+NymphsModules/nymphs-registry main:   f638a7d  registry points LoRA at 0.1.34
+NymphsCore modular:                   7fdf948  Core EXE/ZIP rebuilt
 ```
 
 The live test WSL install was updated in place to LoRA `0.1.34` without
@@ -192,23 +194,23 @@ Stop AI Toolkit   -> stops the AI Toolkit UI/worker only
   `job_status` in-place, and exposes final/latest output state. `Open Pictures`,
   `Open Captions`, `Caption with Brain`, `Create Job`, `Start Training`, `Stop
   Job`, `Delete Job`, and `Status` are wired through module actions.
-- The Manager has a basic local HTML action hook:
+- The old main-branch AI Toolkit job flow has been ported into module-owned
+  helpers enough for UI smoke testing. It still needs a tiny real training run
+  to prove the full API queue/job/progress/final-output path end to end.
 
-```text
-nymphs-module-action://<action>?key=value
-```
+### Not Done / Not Proven
 
-It can run installed module entrypoints declared in `nymph.json`. The newer
-WebView2 `module_action` message bridge is used for in-place `job_status`
-polling so Easy LoRA can update without navigating to the Manager Logs page.
-- The old main-branch AI Toolkit job flow still exists in `NymphsCore`
-  Manager code and should be ported, not rewritten from memory.
+No original handoff button/action entrypoints remain unwired. The important
+remaining work is validation, not more speculative UI:
 
-### Not Done
-
-No original handoff button/action entrypoints remain unwired. Remaining work is
-real-run validation, UI edge-case polish, and any deliberate fallback behavior
-that should exist alongside the AI Toolkit product path.
+- prove `Create Job -> Start Training -> progress/log polling -> final
+  .safetensors` with a tiny real dataset
+- verify `Stop Job` and `Delete Job` against real queued/running/completed AI
+  Toolkit jobs
+- verify `Caption with Brain` against the current Brain module/runtime
+- fix any AI Toolkit API edge cases discovered during that real run
+- only then consider deliberate fallback behavior such as direct
+  `python run.py jobs/name.yaml`
 
 ### Current User-Visible Reality
 
@@ -343,23 +345,10 @@ Easy LoRA visible preset labels/order restored to main Manager parity:
 Fast Test, Baseline, Style, Strong Style.
 ```
 
-New in module version `0.1.33`:
-
-```text
-Superseded by 0.1.34. A Guide module action was briefly added, but that
-duplicated the Manager's existing right-rail Guide button.
-```
-
 New in module version `0.1.34`:
 
 ```text
-Removed the duplicate Guide module action. The public Easy LoRA guide is
-Manager-owned:
-https://nymphnerds.github.io/NymphsCore/home/guides/training.html
-
-Core modular should route the existing right-rail Guide button to this URL when
-LoRA is the displayed module, and should show // Guide beside // Close UI while
-Easy LoRA is open.
+Removed the duplicate Guide module action. Guide routing is Manager-owned.
 ```
 
 Related Core modular change:
@@ -372,6 +361,10 @@ active train job    -> LoRA: Training active / LoRA: Training queued
 
 The details pane now shows AI Toolkit UI/worker state, assets, counts, and
 folder path instead of generic Health/Runtime/Data booleans.
+
+NymphsCore modular 7fdf948:
+LoRA Guide routing is enabled for the existing right-rail Guide and the Easy
+LoRA embedded rail.
 ```
 
 ## Current Architecture Decision
@@ -820,7 +813,7 @@ The module installer should continue to prepare:
 Large training assets are intentionally a second explicit step:
 
 - `scripts/lora_fetch_assets.sh`
-- Manager action label: `Prepare Training Assets`
+- Manager action label: `Fetch Training Assets`
 - downloads/resumes Z-Image Turbo model cache
 - downloads/resumes `ostris/zimage_turbo_training_adapter`
 - selects/writes `selected_adapter_path.txt`
@@ -913,15 +906,13 @@ This can be implemented in the Easy LoRA HTML plus module helper endpoint/action
 
 ## Open Questions
 
-1. Whether Easy LoRA should use a module-owned local helper API or a richer
-   Manager WebView2 bridge for in-page structured actions.
-2. Whether AI Toolkit should open inside Manager WebView2 by default or external
+1. Whether AI Toolkit should open inside Manager WebView2 by default or external
    browser by default.
-3. Whether to expose Gradio as a hidden/dev action.
-4. Whether preset labels should stay `Strong Style` or become `Style High Noise`.
-5. Whether LoRA should download both adapter weights by default forever, or
+2. Whether to expose Gradio as a hidden/dev action.
+3. Whether preset labels should stay `Strong Style` or become `Style High Noise`.
+4. Whether LoRA should download both adapter weights by default forever, or
    expose an adapter/weight selector during `Fetch Training Assets`.
-6. How generic to make future training targets beyond Z-Image Turbo.
+5. How generic to make future training targets beyond Z-Image Turbo.
 
 ## Recommended Implementation Order
 
@@ -932,52 +923,60 @@ install/update/status/uninstall wrappers
 separate training asset fetch
 standard lifecycle rail support
 Easy LoRA local HTML surface
-AI Toolkit/Open Datasets/Open LoRAs/Logs module actions
+Open AI Toolkit/Stop AI Toolkit/Open Datasets/Open LoRAs/Logs module actions
+Open Pictures/Open Captions/Caption with Brain module actions
+Create Job/Start Training/Stop Job/Delete Job/Status module actions
+in-place WebView2 module_action polling/rendering
+finished LoRA summary and saved job setting import
+compact default-window Easy LoRA layout
+clear Manager detail states for Ready / AI Toolkit running / Training active
 ```
 
-Next implementation pass:
+Next test pass:
 
-1. Add module-owned helpers copied/ported from `NymphsCore origin/main`.
-2. Start with dataset/caption file operations that do not require AI Toolkit:
+1. Start the rebuilt `NymphsCore modular` Manager EXE.
+2. Confirm LoRA is installed, assets are ready, and AI Toolkit is stopped:
 
 ```text
-open_pictures
-open_captions
-prepare_metadata
-sync_caption_txt
+LoRA: Ready
+AI Toolkit: UI Stopped, worker Stopped
+Training assets: Ready
 ```
 
-3. Add `job_status` that reports real state for one selected LoRA name:
+3. Open Easy LoRA. Confirm reopening is fast if AI Toolkit is already running.
+4. Use a tiny dataset folder, for example:
 
 ```text
-dataset exists/missing
-metadata exists/missing
-image_count
-missing_caption_count
-selected AI Toolkit job id/state/info
-latest log tail
-progress current/total/percent
-final checkpoint exists
+/home/nymph/LoRA/datasets/my_first_lora
 ```
 
-4. Add module-owned Python helper for AI Toolkit API/job operations.
-5. Add job lifecycle module actions:
+5. Test `Open Pictures`, add a few small images, then test `Open Captions`.
+   Confirm `metadata.csv` and sidecar `.txt` captions are created/preserved.
+6. If Brain is running, test `Caption with Brain` with `Fill Blank Only`.
+7. Test `Create Job`; confirm the job appears in AI Toolkit and was registered
+   through the AI Toolkit API, not only as a local YAML direct-run job.
+8. Test `Status`; confirm progress/log/status updates in-place and does not
+   navigate to Manager Logs.
+9. Run one tiny real `Start Training` test only when ready for GPU use. Watch:
 
 ```text
-create_job
-start_job
-stop_job
-delete_job
+queued/running AI Toolkit job state
+progress step parsing
+live log tail
+final .safetensors under /home/nymph/LoRA/loras
 ```
 
-6. Add Brain caption helpers and wire `Caption with Brain`.
-7. Decide and implement the Easy LoRA HTML communication path:
+10. Test `Stop Job`, then `Delete Job`. Confirm delete does not remove
+    datasets, captions, generated LoRAs, or downloaded training assets.
 
-```text
-module-owned local helper API
-or richer Manager WebView2 bridge
-```
+Next implementation pass after the test pass:
 
-8. Wire `ui/manager.html` to real status/actions.
-9. Test full AI Toolkit job roundtrip with a tiny dataset.
-10. Only after that, polish UI styling.
+1. Fix any real-run AI Toolkit API edge cases found by the tiny training test.
+2. Improve active-job detection in `lora_status.sh` if Manager detail should
+   show `Training active` even when Easy LoRA is not selected.
+3. Decide whether `Stop AI Toolkit` should be hidden/disabled more aggressively
+   when both UI and worker are stopped.
+4. Decide whether `Open AI Toolkit` should open inside Manager WebView2 or
+   always external browser.
+5. Add any deliberate direct-run fallback only after the AI Toolkit job flow is
+   confirmed stable.
