@@ -7,6 +7,8 @@ source "${SCRIPT_DIR}/_lora_common.sh"
 installed=false
 runtime_present=false
 data_present=false
+user_data_present=false
+training_assets_present=false
 repo_ready=false
 venv_ready=false
 node_ready=false
@@ -34,11 +36,6 @@ if [[ -f "${marker}" ]]; then
   detail="LoRA trainer installed."
 fi
 
-if [[ -d "${LORA_DATASET_DIR}" || -d "${LORA_OUTPUT_DIR}" || -d "${LORA_JOB_DIR}" || -d "${LORA_CONFIG_DIR}" ]] ||
-   [[ -d "${LORA_LOG_DIR}" && -n "$(find "${LORA_LOG_DIR}" -mindepth 1 -print -quit 2>/dev/null)" ]]; then
-  data_present=true
-fi
-
 if [[ -d "${LORA_OUTPUT_DIR}" ]]; then
   lora_count="$(find "${LORA_OUTPUT_DIR}" -type f -name '*.safetensors' 2>/dev/null | wc -l | tr -d '[:space:]')"
 fi
@@ -49,6 +46,21 @@ fi
 
 if [[ -d "${LORA_JOB_DIR}" ]]; then
   job_count="$(find "${LORA_JOB_DIR}" -mindepth 1 -maxdepth 1 \( -type f -o -type d \) 2>/dev/null | wc -l | tr -d '[:space:]')"
+fi
+
+if [[ "${dataset_count}" != "0" || "${lora_count}" != "0" || "${job_count}" != "0" ]] ||
+   [[ -d "${LORA_CONFIG_DIR}" && -n "$(find "${LORA_CONFIG_DIR}" -mindepth 1 -print -quit 2>/dev/null)" ]] ||
+   [[ -d "${LORA_LOG_DIR}" && -n "$(find "${LORA_LOG_DIR}" -mindepth 1 -print -quit 2>/dev/null)" ]]; then
+  user_data_present=true
+fi
+
+if [[ -d "${LORA_MODEL_DIR}" && -n "$(find "${LORA_MODEL_DIR}" -mindepth 1 -print -quit 2>/dev/null)" ]] ||
+   [[ -d "${LORA_ADAPTER_DIR}" && -n "$(find "${LORA_ADAPTER_DIR}" -mindepth 1 -print -quit 2>/dev/null)" ]]; then
+  training_assets_present=true
+fi
+
+if [[ "${user_data_present}" == "true" || "${training_assets_present}" == "true" ]]; then
+  data_present=true
 fi
 
 if [[ "${installed}" == "true" ]]; then
@@ -97,6 +109,8 @@ name=LoRA
 installed=${installed}
 runtime_present=${runtime_present}
 data_present=${data_present}
+user_data_present=${user_data_present}
+training_assets_present=${training_assets_present}
 version=${version}
 repo_ready=${repo_ready}
 venv_ready=${venv_ready}
