@@ -518,7 +518,7 @@
         </div>
         <label class="field">
           <span>Checkpoints</span>
-          <select id="checkpoints"><option value="4">4</option><option value="2">2</option><option value="8">8</option></select>
+          <select id="checkpoints"><option value="0">Off</option><option value="2">2</option><option value="4" selected>4</option><option value="8">8</option></select>
         </label>
         <label class="field">
           <span>Learning rate</span>
@@ -532,7 +532,7 @@
 
       <div class="options">
         <label class="check"><input id="low-vram" type="checkbox">Low VRAM mode</label>
-        <span class="hint">Checkpoint every 750 steps</span>
+        <span id="checkpoint-summary" class="hint">Checkpoint every 750 steps</span>
       </div>
 
       <div class="jobs">
@@ -586,6 +586,7 @@
     const adapter = document.querySelector("#adapter");
     const samplePrompt = document.querySelector("#sample-prompt");
     const checkpoints = document.querySelector("#checkpoints");
+    const checkpointSummary = document.querySelector("#checkpoint-summary");
     const learningRate = document.querySelector("#learning-rate");
     const rank = document.querySelector("#rank");
     const lowVram = document.querySelector("#low-vram");
@@ -813,6 +814,29 @@
       const clamped = Math.max(min, Math.min(max, parsed));
       range.value = String(clamped);
       output.textContent = range.value;
+      updateCheckpointSummary();
+    }
+
+    function normalizedCheckpointCount() {
+      const value = intValue(checkpoints.value, 4);
+      if (value <= 0) {
+        return 0;
+      }
+      if (value <= 2) {
+        return 2;
+      }
+      if (value <= 4) {
+        return 4;
+      }
+      return 8;
+    }
+
+    function updateCheckpointSummary() {
+      const stepCount = Math.max(1, intValue(steps.value, 3000));
+      const checkpointCount = normalizedCheckpointCount();
+      checkpointSummary.textContent = checkpointCount <= 0
+        ? "No checkpoints"
+        : `Checkpoint every ${Math.max(1, Math.floor(stepCount / checkpointCount))} steps`;
     }
 
     function samplePromptFromStatus(values) {
@@ -942,7 +966,9 @@
 
     steps.addEventListener("input", () => {
       output.textContent = steps.value;
+      updateCheckpointSummary();
     });
+    checkpoints.addEventListener("change", updateCheckpointSummary);
     for (const control of [preset, adapter, steps, checkpoints, learningRate, rank, lowVram, samplePrompt, captionMode]) {
       control.addEventListener("input", () => {
         formEdited = true;
@@ -966,6 +992,7 @@
     stopJob.addEventListener("click", () => runEasyAction("stop_job"));
     deleteJob.addEventListener("click", () => runEasyAction("delete_job"));
     jobStatus.addEventListener("click", () => refreshStatus(true));
+    updateCheckpointSummary();
     ensureBackendOnLoad();
     setInterval(refreshStatus, 5000);
   </script>

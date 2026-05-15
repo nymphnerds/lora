@@ -92,12 +92,12 @@ Relevant pushed heads before this handoff update:
 NymphsCore modular: 0088baa  module UI rail label is Close UI
 ```
 
-The live test WSL install was updated in place to LoRA `0.1.30` without
+The live test WSL install was updated in place to LoRA `0.1.31` without
 reinstalling or redownloading training assets.
 
 ### Done
 
-- `LoRA` exists as a first-party module repo with manifest version `0.1.30`.
+- `LoRA` exists as a first-party module repo with manifest version `0.1.31`.
 - The Manager can install, update, repair, uninstall, and delete LoRA data using
   the standard module lifecycle rail.
 - Base install creates the isolated trainer root:
@@ -326,6 +326,14 @@ New in module version `0.1.30`:
 Easy LoRA reopen fast path. The page checks job_status first and only starts
 AI Toolkit if the API is not already running. lora_easy_lora.sh also skips the
 UI/worker launchers when they are already alive.
+```
+
+New in module version `0.1.31`:
+
+```text
+Easy LoRA checkpoint summary now updates when steps/checkpoint count changes
+and matches the old Manager math: no checkpoints when count is 0, otherwise
+floor(steps / checkpoint_count).
 ```
 
 Related Core modular change:
