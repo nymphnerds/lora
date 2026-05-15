@@ -92,12 +92,12 @@ Relevant pushed heads before this handoff update:
 NymphsCore modular: 0088baa  module UI rail label is Close UI
 ```
 
-The live test WSL install was updated in place to LoRA `0.1.32` without
+The live test WSL install was updated in place to LoRA `0.1.33` without
 reinstalling or redownloading training assets.
 
 ### Done
 
-- `LoRA` exists as a first-party module repo with manifest version `0.1.32`.
+- `LoRA` exists as a first-party module repo with manifest version `0.1.33`.
 - The Manager can install, update, repair, uninstall, and delete LoRA data using
   the standard module lifecycle rail.
 - Base install creates the isolated trainer root:
@@ -234,6 +234,7 @@ Declared in `nymph.json`:
 
 ```text
 easy_lora      -> opens module UI
+guide          -> opens the NymphsCore GitHub Pages Easy LoRA guide
 fetch_assets   -> downloads/resumes training assets
 aitoolkit      -> starts/opens official AI Toolkit
 open_datasets  -> opens /home/nymph/LoRA/datasets
@@ -341,6 +342,16 @@ New in module version `0.1.32`:
 ```text
 Easy LoRA visible preset labels/order restored to main Manager parity:
 Fast Test, Baseline, Style, Strong Style.
+```
+
+New in module version `0.1.33`:
+
+```text
+Added a Guide module action for the public Easy LoRA training guide:
+https://nymphnerds.github.io/NymphsCore/home/guides/training.html
+
+Manager should show this as // Guide both on the LoRA detail action rail and
+while Easy LoRA is open next to // Close UI.
 ```
 
 Related Core modular change:

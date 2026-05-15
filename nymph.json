@@ -3,7 +3,7 @@
   "id": "lora",
   "name": "LoRA",
   "short_name": "LO",
-  "version": "0.1.32",
+  "version": "0.1.33",
   "description": "Z-Image Turbo LoRA training stack using AI Toolkit, packaged as an installable Nymph module.",
   "category": "training",
   "packaging": "repo",
@@ -78,6 +78,7 @@
     "update": "scripts/lora_update.sh",
     "status": "scripts/lora_status.sh",
     "easy_lora": "scripts/lora_easy_lora.sh",
+    "guide": "scripts/lora_open_guide.sh",
     "start": "scripts/lora_start.sh",
     "stop": "scripts/lora_stop.sh",
     "open": "scripts/lora_open.sh",
@@ -112,6 +113,12 @@
         "label": "Easy LoRA",
         "entrypoint": "easy_lora",
         "result": "open_module_ui"
+      },
+      {
+        "id": "guide",
+        "label": "Guide",
+        "entrypoint": "guide",
+        "result": "open_external_browser"
       },
       {
         "id": "fetch_assets",
