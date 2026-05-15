@@ -625,6 +625,7 @@
     const logOutput = document.querySelector("#log-output");
     let requestId = 0;
     let statusInFlight = false;
+    let actionInFlight = false;
     let formHydrated = false;
     let formEdited = false;
     const pendingRequests = new Map();
@@ -664,6 +665,25 @@
           args
         });
       });
+    }
+
+    async function runEasyAction(action, params = {}) {
+      if (actionInFlight) {
+        return;
+      }
+      actionInFlight = true;
+      try {
+        const output = await moduleAction(action, params);
+        const trimmed = String(output || "").trim();
+        if (trimmed) {
+          logOutput.textContent = trimmed;
+        }
+        await refreshStatus();
+      } catch (error) {
+        logOutput.textContent = error.message || String(error);
+      } finally {
+        actionInFlight = false;
+      }
     }
 
     if (window.chrome && window.chrome.webview) {
@@ -861,7 +881,7 @@
     }
 
     async function refreshStatus() {
-      if (statusInFlight) {
+      if (statusInFlight || actionInFlight) {
         return;
       }
       statusInFlight = true;
@@ -923,16 +943,16 @@
       formHydrated = false;
       formEdited = false;
     });
-    openPictures.addEventListener("click", () => runModuleAction("open_pictures"));
-    openCaptions.addEventListener("click", () => runModuleAction("open_captions"));
-    captionBrain.addEventListener("click", () => runModuleAction("caption_brain", {
+    openPictures.addEventListener("click", () => runEasyAction("open_pictures"));
+    openCaptions.addEventListener("click", () => runEasyAction("open_captions"));
+    captionBrain.addEventListener("click", () => runEasyAction("caption_brain", {
       "caption-mode": captionMode.value,
       "training-focus": captionFocus()
     }));
-    createJob.addEventListener("click", () => runModuleAction("create_job", createJobParams()));
-    startJob.addEventListener("click", () => runModuleAction("start_job"));
-    stopJob.addEventListener("click", () => runModuleAction("stop_job"));
-    deleteJob.addEventListener("click", () => runModuleAction("delete_job"));
+    createJob.addEventListener("click", () => runEasyAction("create_job", createJobParams()));
+    startJob.addEventListener("click", () => runEasyAction("start_job"));
+    stopJob.addEventListener("click", () => runEasyAction("stop_job"));
+    deleteJob.addEventListener("click", () => runEasyAction("delete_job"));
     jobStatus.addEventListener("click", refreshStatus);
     refreshStatus();
     setInterval(refreshStatus, 5000);
