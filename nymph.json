@@ -3,6 +3,7 @@
   "id": "lora",
   "name": "LoRA",
   "short_name": "LO",
+  "version": "0.1.1",
   "description": "Z-Image Turbo LoRA training stack using AI Toolkit, packaged as an installable Nymph module.",
   "category": "training",
   "packaging": "repo",
@@ -10,9 +11,41 @@
     "url": "https://github.com/nymphnerds/lora.git",
     "branch": "main"
   },
+  "source": {
+    "type": "repo",
+    "repo": "https://github.com/nymphnerds/lora.git",
+    "ref": "main"
+  },
+  "overview": {
+    "body": "LoRA installs the Z-Image Turbo training stack as a Nymph module. It prepares an isolated AI Toolkit runtime, local Node UI, queue worker, Z-Image Turbo training model cache, training adapter, datasets, jobs, logs, and generated LoRA output folders.\n\nInstall sets up the trainer runtime and required training assets. Use AI Toolkit to open the official advanced UI after install. Easy LoRA will be added as the module-owned beginner UI after the install/status/action contract is stable.\n\nUser data is preserved by normal uninstall: datasets, jobs, generated LoRAs, config, and logs stay in the trainer root unless purge is explicitly requested.",
+    "links": [
+      {
+        "label": "AI Toolkit",
+        "url": "https://github.com/ostris/ai-toolkit"
+      },
+      {
+        "label": "Z-Image Turbo",
+        "url": "https://huggingface.co/Tongyi-MAI/Z-Image-Turbo"
+      },
+      {
+        "label": "Training adapter",
+        "url": "https://huggingface.co/ostris/zimage_turbo_training_adapter"
+      }
+    ],
+    "requirements": [
+      "Managed NymphsCore WSL distro",
+      "CUDA-capable NVIDIA GPU",
+      "Python 3 with venv",
+      "Local Node 20 runtime"
+    ]
+  },
   "install": {
-    "path": "$HOME/ZImage-Trainer",
-    "script": "scripts/install_lora.sh"
+    "root": "$HOME/ZImage-Trainer",
+    "entrypoint": "scripts/install_lora.sh",
+    "version_marker": "$HOME/ZImage-Trainer/.nymph-module-version",
+    "installed_markers": [
+      "$HOME/ZImage-Trainer/.nymph-module-version"
+    ]
   },
   "runtime": {
     "services": [
@@ -30,15 +63,70 @@
       }
     ]
   },
-  "manager": {
-    "page": "custom",
+  "artifacts": {
+    "install_root": "$HOME/ZImage-Trainer",
+    "datasets_root": "$HOME/ZImage-Trainer/datasets",
+    "outputs_root": "$HOME/ZImage-Trainer/loras",
+    "jobs_root": "$HOME/ZImage-Trainer/jobs",
+    "config_root": "$HOME/ZImage-Trainer/config",
+    "logs_root": "$HOME/ZImage-Trainer/logs",
+    "models_root": "$HOME/ZImage-Trainer/models",
+    "adapters_root": "$HOME/ZImage-Trainer/adapters"
+  },
+  "entrypoints": {
+    "install": "scripts/install_lora.sh",
     "status": "scripts/lora_status.sh",
     "start": "scripts/lora_start.sh",
     "stop": "scripts/lora_stop.sh",
     "open": "scripts/lora_open.sh",
     "logs": "scripts/lora_logs.sh",
+    "open_loras": "scripts/lora_open_loras.sh",
+    "open_datasets": "scripts/lora_open_datasets.sh",
+    "open_jobs": "scripts/lora_open_jobs.sh",
     "refresh": "scripts/lora_refresh.sh",
     "uninstall": "scripts/lora_uninstall.sh"
+  },
+  "ui": {
+    "sort_order": 30,
+    "standard_lifecycle_rail": true,
+    "manager_actions": [
+      {
+        "id": "aitoolkit",
+        "label": "AI Toolkit",
+        "entrypoint": "start",
+        "result": "open_external_browser"
+      },
+      {
+        "id": "open_loras",
+        "label": "Open LoRAs",
+        "entrypoint": "open_loras",
+        "result": "open_directory"
+      },
+      {
+        "id": "open_datasets",
+        "label": "Open Datasets",
+        "entrypoint": "open_datasets",
+        "result": "open_directory"
+      },
+      {
+        "id": "open_jobs",
+        "label": "Open Jobs",
+        "entrypoint": "open_jobs",
+        "result": "open_directory"
+      },
+      {
+        "id": "stop",
+        "label": "Stop",
+        "entrypoint": "stop",
+        "result": "show_output"
+      },
+      {
+        "id": "logs",
+        "label": "Logs",
+        "entrypoint": "logs",
+        "result": "show_output"
+      }
+    ]
   },
   "uninstall": {
     "supports_purge": true,

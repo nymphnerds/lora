@@ -11,3 +11,4 @@ fi
 
 "${LORA_BIN_DIR}/ztrain-start-queue-worker"
 "${LORA_BIN_DIR}/ztrain-start-official-ui"
+echo "url=http://127.0.0.1:${LORA_UI_PORT}"

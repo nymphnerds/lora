@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MODULE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 TRAINER_ROOT="${ZIMAGE_TRAINER_ROOT:-$HOME/ZImage-Trainer}"
 REPO_DIR="${ZIMAGE_TRAINER_REPO_DIR:-$TRAINER_ROOT/ai-toolkit}"
 VENV_DIR="${ZIMAGE_TRAINER_VENV:-$REPO_DIR/venv}"
@@ -709,3 +711,18 @@ echo "Trainer model cache: $MODEL_ROOT"
 echo "Default method: Z-Image Turbo LoRA training with AI Toolkit and ostris/zimage_turbo_training_adapter."
 echo "Official UI launch: $BIN_ROOT/ztrain-start-official-ui"
 echo "Gradio UI launch: $BIN_ROOT/ztrain-start-gradio-ui"
+install -m 644 "${MODULE_ROOT}/nymph.json" "${TRAINER_ROOT}/nymph.json"
+mkdir -p "${TRAINER_ROOT}/scripts"
+install -m 755 "${MODULE_ROOT}"/scripts/*.sh "${TRAINER_ROOT}/scripts/"
+module_version="$(python3 - "${MODULE_ROOT}/nymph.json" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], "r", encoding="utf-8") as handle:
+    manifest = json.load(handle)
+
+print(str(manifest.get("version", "unknown")).strip() or "unknown")
+PY
+)"
+printf '%s\n' "${module_version}" > "${TRAINER_ROOT}/.nymph-module-version"
+echo "installed_module_version=${module_version}"

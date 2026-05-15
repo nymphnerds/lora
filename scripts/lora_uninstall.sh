@@ -69,6 +69,7 @@ fi
 if [[ "${PURGE}" -eq 1 ]]; then
   rm -rf "${LORA_INSTALL_ROOT}"
 else
+  rm -f "${LORA_INSTALL_ROOT}/.nymph-module-version"
   rm -rf \
     "${LORA_INSTALL_ROOT}/ai-toolkit" \
     "${LORA_INSTALL_ROOT}/.node20" \
