@@ -3,7 +3,7 @@
   "id": "lora",
   "name": "LoRA",
   "short_name": "LO",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Z-Image Turbo LoRA training stack using AI Toolkit, packaged as an installable Nymph module.",
   "category": "training",
   "packaging": "repo",
@@ -17,7 +17,7 @@
     "ref": "main"
   },
   "overview": {
-    "body": "A LoRA is a small training file that teaches Z-Image Turbo a specific character, outfit, object, style, or subject without replacing the whole base model. You train it from your own images, then use the finished LoRA in generation to reproduce that look.\n\nThis module installs a local Z-Image Turbo LoRA training workspace using AI Toolkit. It creates the trainer runtime, Easy LoRA beginner UI, advanced AI Toolkit UI, queue worker, dataset folder, logs, generated LoRA output folder, and shared training asset folders.\n\nBeginner flow:\n1. Prepare Training Assets: download or resume the large Z-Image Turbo training model and training adapter. Do this once before the first training run.\n2. Open Datasets: put each training set in its own folder with images and captions.\n3. Easy LoRA: use the beginner UI to make captions, create jobs, start training, stop jobs, and watch progress.\n4. AI Toolkit: use the official advanced UI only when you want the full training interface.\n5. Open LoRAs: find finished .safetensors files after training. Use Logs if a run needs troubleshooting.\n\nNormal Uninstall removes the trainer runtime and keeps your datasets, jobs, outputs, logs, and downloaded assets. Delete Data is the separate wipe button for those saved files.",
+    "body": "A LoRA is a small training file that teaches Z-Image Turbo a specific character, outfit, object, style, or subject without replacing the whole base model. You train it from your own images, then use the finished LoRA in generation to reproduce that look.\n\nThis module installs a local Z-Image Turbo LoRA training workspace using AI Toolkit. It creates the trainer runtime, Easy LoRA beginner UI, advanced AI Toolkit UI, queue worker, dataset folder, logs, generated LoRA output folder, and shared training asset folders.\n\nFirst-time setup:\n1. Install sets up the trainer app and tools only.\n2. Prepare Training Assets downloads or resumes the large Z-Image Turbo training model and the required training adapter. Do this once before your first training run. This can take a while and uses a lot of disk space, but it is resumable.\n\nBeginner flow after assets are ready:\n1. Open Datasets: put each training set in its own folder with images and captions.\n2. Easy LoRA: use the beginner UI to make captions, create jobs, start training, stop jobs, and watch progress.\n3. AI Toolkit: use the official advanced UI only when you want the full training interface.\n4. Open LoRAs: find finished .safetensors files after training. Use Logs if a run needs troubleshooting.\n\nNormal Uninstall removes the trainer runtime and keeps your datasets, jobs, outputs, logs, and downloaded assets. Delete Data is the separate wipe button for those saved files.",
     "links": [
       {
         "label": "AI Toolkit",
