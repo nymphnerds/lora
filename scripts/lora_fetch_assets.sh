@@ -17,6 +17,7 @@ echo "This downloads the Z-Image Turbo training model bundle and assistant train
 echo "Existing partial Hugging Face downloads will be resumed when possible."
 echo "Model cache: ${LORA_MODEL_DIR}"
 echo "Adapter cache: ${LORA_ADAPTER_DIR}"
+echo "FETCH_ASSETS_PROGRESS status=starting phase=metadata model_cache=${LORA_MODEL_DIR} adapter_cache=${LORA_ADAPTER_DIR}"
 
 MODEL_ROOT="${LORA_MODEL_DIR}" \
 ADAPTER_ROOT="${LORA_ADAPTER_DIR}" \
@@ -166,6 +167,8 @@ adapter_path_file = Path(os.environ["ADAPTER_PATH_FILE"])
 model_root.mkdir(parents=True, exist_ok=True)
 adapter_root.mkdir(parents=True, exist_ok=True)
 
+print("FETCH_ASSETS_PROGRESS status=running phase=metadata waiting_on=Hugging Face file lists", flush=True)
+
 model_assets = repo_assets(
     "Tongyi-MAI/Z-Image-Turbo",
     [
@@ -177,6 +180,10 @@ model_assets = repo_assets(
         "*.txt",
         "*.model",
     ],
+)
+print(
+    "FETCH_ASSETS_PROGRESS status=running phase=model_bundle waiting_on=Z-Image Turbo model downloads",
+    flush=True,
 )
 download_assets("Tongyi-MAI/Z-Image-Turbo", model_root, model_assets, "Z-Image Turbo model bundle")
 
@@ -195,6 +202,10 @@ if missing_model_paths:
 adapter_assets = repo_assets(
     "ostris/zimage_turbo_training_adapter",
     ["*.safetensors", "*.bin", "*.pt", "*.pth", "*.ckpt"],
+)
+print(
+    "FETCH_ASSETS_PROGRESS status=running phase=training_adapter waiting_on=adapter weight downloads",
+    flush=True,
 )
 download_assets(
     "ostris/zimage_turbo_training_adapter",
@@ -222,5 +233,6 @@ if not adapter_candidates:
 selected_adapter = adapter_candidates[0].resolve()
 adapter_path_file.write_text(str(selected_adapter) + "\n", encoding="utf-8")
 print(f"Turbo training adapter selected: {selected_adapter}", flush=True)
+print("FETCH_ASSETS_PROGRESS status=complete phase=ready", flush=True)
 print("LoRA training assets ready.", flush=True)
 PYEOF
