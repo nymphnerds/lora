@@ -3,7 +3,7 @@
   "id": "lora",
   "name": "LoRA",
   "short_name": "LO",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Z-Image Turbo LoRA training stack using AI Toolkit, packaged as an installable Nymph module.",
   "category": "training",
   "packaging": "repo",
@@ -17,7 +17,7 @@
     "ref": "main"
   },
   "overview": {
-    "body": "LoRA installs the Z-Image Turbo training stack as a Nymph module. It prepares an isolated AI Toolkit runtime, local Node UI, queue worker, datasets, jobs, logs, and generated LoRA output folders.\n\nInstall sets up the trainer runtime first. Use Prepare Training Assets to download or resume the large Z-Image Turbo training model bundle and training adapter before the first training run. Use AI Toolkit to open the official advanced UI after install. Easy LoRA will be added as the module-owned beginner UI after the install/status/action contract is stable.\n\nUser data is preserved by normal uninstall: datasets, jobs, generated LoRAs, config, logs, and downloaded training assets stay in the trainer root unless purge is explicitly requested.",
+    "body": "A LoRA is a small training file that teaches Z-Image Turbo a specific character, outfit, object, style, or subject without replacing the whole base model. You train it from your own images, then use the finished LoRA in generation to reproduce that look.\n\nThis module installs a local Z-Image Turbo LoRA training workspace using AI Toolkit. It creates the trainer runtime, Easy LoRA beginner UI, advanced AI Toolkit UI, queue worker, dataset folder, logs, generated LoRA output folder, and shared training asset folders.\n\nBeginner flow:\n1. Prepare Training Assets: download or resume the large Z-Image Turbo training model and training adapter. Do this once before the first training run.\n2. Open Datasets: put each training set in its own folder with images and captions.\n3. Easy LoRA: use the beginner UI to make captions, create jobs, start training, stop jobs, and watch progress.\n4. AI Toolkit: use the official advanced UI only when you want the full training interface.\n5. Open LoRAs: find finished .safetensors files after training. Use Logs if a run needs troubleshooting.\n\nNormal Uninstall removes the trainer runtime and keeps your datasets, jobs, outputs, logs, and downloaded assets. Delete Data is the separate wipe button for those saved files.",
     "links": [
       {
         "label": "AI Toolkit",
@@ -77,6 +77,7 @@
     "install": "scripts/install_lora.sh",
     "update": "scripts/lora_update.sh",
     "status": "scripts/lora_status.sh",
+    "easy_lora": "scripts/lora_easy_lora.sh",
     "start": "scripts/lora_start.sh",
     "stop": "scripts/lora_stop.sh",
     "open": "scripts/lora_open.sh",
@@ -91,12 +92,17 @@
   "ui": {
     "sort_order": 30,
     "standard_lifecycle_rail": true,
+    "manager_ui": {
+      "type": "local_html",
+      "title": "Easy LoRA",
+      "entrypoint": "ui/manager.html"
+    },
     "manager_actions": [
       {
-        "id": "aitoolkit",
-        "label": "AI Toolkit",
-        "entrypoint": "start",
-        "result": "open_external_browser"
+        "id": "easy_lora",
+        "label": "Easy LoRA",
+        "entrypoint": "easy_lora",
+        "result": "open_module_ui"
       },
       {
         "id": "fetch_assets",
@@ -105,10 +111,10 @@
         "result": "show_output"
       },
       {
-        "id": "open_loras",
-        "label": "Open LoRAs",
-        "entrypoint": "open_loras",
-        "result": "open_directory"
+        "id": "aitoolkit",
+        "label": "AI Toolkit",
+        "entrypoint": "start",
+        "result": "open_external_browser"
       },
       {
         "id": "open_datasets",
@@ -117,16 +123,10 @@
         "result": "open_directory"
       },
       {
-        "id": "open_jobs",
-        "label": "Open Jobs",
-        "entrypoint": "open_jobs",
+        "id": "open_loras",
+        "label": "Open LoRAs",
+        "entrypoint": "open_loras",
         "result": "open_directory"
-      },
-      {
-        "id": "stop",
-        "label": "Stop",
-        "entrypoint": "stop",
-        "result": "show_output"
       },
       {
         "id": "logs",

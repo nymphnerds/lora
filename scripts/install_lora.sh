@@ -638,6 +638,12 @@ echo "Gradio UI launch: $BIN_ROOT/ztrain-start-gradio-ui"
 install -m 644 "${MODULE_ROOT}/nymph.json" "${TRAINER_ROOT}/nymph.json"
 mkdir -p "${TRAINER_ROOT}/scripts"
 install -m 755 "${MODULE_ROOT}"/scripts/*.sh "${TRAINER_ROOT}/scripts/"
+if [[ -d "${MODULE_ROOT}/ui" ]]; then
+  mkdir -p "${TRAINER_ROOT}/ui"
+  find "${MODULE_ROOT}/ui" -maxdepth 1 -type f -print0 | while IFS= read -r -d '' ui_file; do
+    install -m 644 "${ui_file}" "${TRAINER_ROOT}/ui/$(basename "${ui_file}")"
+  done
+fi
 module_version="$(python3 - "${MODULE_ROOT}/nymph.json" <<'PY'
 import json
 import sys
