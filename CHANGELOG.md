@@ -1,5 +1,12 @@
 # LoRA Changelog
 
+## 0.1.37 - 2026-05-16
+
+- Fixed the Easy LoRA progress bar reusing a previous completed run's 100%
+  value when the current form state needs `Add Job` first.
+- Kept the finished LoRA summary visible while resetting the active workflow
+  progress display back to `0%` for unsaved or changed job settings.
+
 ## 0.1.36 - 2026-05-16
 
 - Fixed completed Easy LoRA jobs getting stuck in the `Stop Job` button state

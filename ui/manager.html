@@ -1023,6 +1023,9 @@
       const total = intValue(values.progress_total);
       const state = values.progress_text || values.job_status || "Idle";
       const jobState = values.job_status ? `AI Toolkit: ${values.job_status}` : values.api_running === "true" ? "AI Toolkit ready" : "AI Toolkit closed";
+      let displayPercent = percent;
+      let displayCurrent = current;
+      let displayTotal = total;
       let logTail = "";
 
       if (values.log_tail_json) {
@@ -1033,18 +1036,20 @@
         }
       }
 
-      progress.setAttribute("aria-valuenow", String(current || percent));
-      progress.setAttribute("aria-valuemax", String(total || 100));
-      progressPercent.textContent = `${percent}%`;
-      progressFill.style.width = `${percent}%`;
       loraCount.textContent = String(intValue(values.lora_count || values.finished_lora_count));
       datasetCount.textContent = String(intValue(values.dataset_count));
       applyFormSettings(values);
       const pendingChanges = values.job_exists === "true" && hasPendingJobChanges();
       if (pendingChanges) {
-        progressSteps.textContent = total > 0 ? `Saved job: ${current} / ${total} steps` : "Saved job settings changed";
+        displayPercent = 0;
+        displayCurrent = 0;
+        displayTotal = intValue(steps.value, 0);
+        progressSteps.textContent = `Current settings: ${steps.value} steps`;
         progressState.textContent = "Settings changed: Add Job first";
       } else if (values.job_exists !== "true") {
+        displayPercent = 0;
+        displayCurrent = 0;
+        displayTotal = intValue(steps.value, 0);
         progressSteps.textContent = `Current settings: ${steps.value} steps`;
         progressState.textContent = "No AI Toolkit job yet: Add Job first";
       } else {
@@ -1058,6 +1063,10 @@
           ? jobState
           : "Job saved under AI Toolkit Jobs > Idle";
       }
+      progress.setAttribute("aria-valuenow", String(displayCurrent || displayPercent));
+      progress.setAttribute("aria-valuemax", String(displayTotal || 100));
+      progressPercent.textContent = `${displayPercent}%`;
+      progressFill.style.width = `${displayPercent}%`;
       updatePrimaryJobAction();
       applyFinishedSummary(values);
       if (logTail) {
