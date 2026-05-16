@@ -1,5 +1,16 @@
 # LoRA Changelog
 
+## 0.1.36 - 2026-05-16
+
+- Fixed completed Easy LoRA jobs getting stuck in the `Stop Job` button state
+  when AI Toolkit continued to report the job as `running` after the final
+  checkpoint had been saved.
+- Added an explicit `training_complete` status field so the UI can distinguish
+  stale AI Toolkit running state from a completed run.
+- Kept reruns safe by only treating an active job as complete when the final
+  checkpoint save appears after the latest matching progress lines in the job
+  log.
+
 ## 0.1.35 - 2026-05-16
 
 - Validated Easy LoRA against the old Manager AI Toolkit flow with a tiny
@@ -25,4 +36,3 @@
 - Fixed LoRA counting so intermediate checkpoint files do not count as separate
   finished LoRAs.
 - Updated the module `Logs` action to open the real module log file in Notepad.
-

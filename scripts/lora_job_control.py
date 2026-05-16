@@ -155,6 +155,35 @@ def parse_progress_from_log(log_text: str, expected_total: int) -> tuple[int, in
     return current, total, max(0, min(100, percent)), stage
 
 
+def log_indicates_final_checkpoint(log_text: str, final_path: Path, expected_total: int) -> bool:
+    if not log_text or not final_path.is_file():
+        return False
+
+    final_path_text = final_path.as_posix()
+    last_progress_line = -1
+    last_saved_final_line = -1
+
+    for index, raw_line in enumerate(log_text.splitlines()):
+        line = raw_line.strip()
+        lower = line.lower()
+
+        structured = STRUCTURED_PROGRESS_RE.search(line)
+        step_match = STEP_PROGRESS_RE.search(line)
+        if structured or step_match:
+            total_text = (structured or step_match).group("total")
+            try:
+                total = int(total_text)
+            except (TypeError, ValueError):
+                total = 0
+            if total > 0 and (expected_total <= 0 or total == expected_total):
+                last_progress_line = index
+
+        if "saved checkpoint" in lower and final_path_text in line:
+            last_saved_final_line = index
+
+    return last_saved_final_line >= 0 and last_saved_final_line >= last_progress_line
+
+
 def read_yaml_steps(job_path: Path) -> int:
     if not job_path.is_file():
         return 0
@@ -588,6 +617,7 @@ def job_status(args: argparse.Namespace) -> int:
         "progress_total": expected_total,
         "progress_percent": 100 if final_exists else 0,
         "progress_text": "Training completed." if final_exists else "No training run in progress yet.",
+        "training_complete": final_exists,
         "log_available": False,
         "log_tail": "",
     }
@@ -599,15 +629,27 @@ def job_status(args: argparse.Namespace) -> int:
         job = get_job_by_ref(normalized_lora)
         if job:
             job_id = str(job.get("id") or "")
+            raw_job_status = str(job.get("status") or "")
+            job_active = raw_job_status.lower() in {"queued", "running"}
+            training_complete = final_exists and not job_active
             status.update(
                 {
                     "job_exists": True,
                     "job_id": job_id,
-                    "job_status": str(job.get("status") or ""),
+                    "job_status": raw_job_status,
                     "job_info": str(job.get("info") or ""),
                     "gpu_ids": str(job.get("gpu_ids") or ""),
+                    "training_complete": training_complete,
                 }
             )
+            if job_active and final_exists:
+                status.update(
+                    {
+                        "progress_percent": 0,
+                        "progress_text": raw_job_status or "AI Toolkit job is active.",
+                        "training_complete": False,
+                    }
+                )
             api_form_settings = read_job_settings_from_config(job.get("job_config"))
             if api_form_settings:
                 status.update(form_status_fields(api_form_settings))
@@ -615,7 +657,10 @@ def job_status(args: argparse.Namespace) -> int:
                 log_text = get_job_log(job_id)
                 if log_text:
                     current, total, percent, text = parse_progress_from_log(log_text, expected_total)
-                    if final_exists and total > 0:
+                    training_complete = final_exists and (
+                        not job_active or log_indicates_final_checkpoint(log_text, final_path, expected_total)
+                    )
+                    if training_complete and total > 0:
                         current = total
                         percent = 100
                         text = f"Training completed: {total}/{total} steps"
@@ -624,8 +669,9 @@ def job_status(args: argparse.Namespace) -> int:
                             "log_available": True,
                             "progress_current": current,
                             "progress_total": total,
-                            "progress_percent": 100 if final_exists else percent,
-                            "progress_text": "Training completed." if final_exists else text,
+                            "progress_percent": 100 if training_complete else percent,
+                            "progress_text": "Training completed." if training_complete else text,
+                            "training_complete": training_complete,
                             "log_tail": "\n".join(log_text.splitlines()[-40:]),
                         }
                     )

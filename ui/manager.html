@@ -986,7 +986,9 @@
         lastSavedJobSettings &&
         !hasPendingJobChanges();
       const activeJob = String(lastStatusValues.job_status || "").toLowerCase();
-      const jobActive = activeJob === "queued" || activeJob === "running";
+      const trainingComplete = lastStatusValues.training_complete === "true" ||
+        lastStatusValues.progress_text === "Training completed.";
+      const jobActive = !trainingComplete && (activeJob === "queued" || activeJob === "running");
       const jobExists = lastStatusValues.job_exists === "true";
       createJob.classList.toggle("primary", !jobReady);
       startJob.classList.toggle("primary", Boolean(jobReady && !jobActive));
@@ -1048,7 +1050,9 @@
       } else {
         progressSteps.textContent = total > 0 ? `${current} / ${total} steps` : "No steps yet";
         const activeJob = String(values.job_status || "").toLowerCase();
-        progressState.textContent = values.final_checkpoint_exists === "true"
+        const trainingComplete = values.training_complete === "true" ||
+          values.progress_text === "Training completed.";
+        progressState.textContent = trainingComplete
           ? "Training completed"
           : activeJob === "queued" || activeJob === "running"
           ? jobState
