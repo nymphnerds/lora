@@ -65,6 +65,11 @@ if [[ "${image_count:-0}" == "0" ]]; then
   exit 1
 fi
 
+echo "Caption Brain: dataset=${dataset_dir}"
+echo "Caption Brain: metadata=${metadata_path}"
+echo "Caption Brain: mode=${caption_mode}"
+echo "Caption Brain: focus=${training_focus}"
+
 INSTALL_ROOT="${BRAIN_INSTALL_ROOT:-${HOME}/Nymphs-Brain}"
 LLMS_START_PATH="${INSTALL_ROOT}/bin/lms-start"
 LMS_STOP_PATH="${INSTALL_ROOT}/bin/lms-stop"

@@ -379,31 +379,45 @@ def main() -> int:
 
     drafted = 0
     skipped = 0
+    total_to_draft = sum(
+        1
+        for row in rows
+        if not (args.mode == "fill_blanks" and row["prompt"].strip()) and
+        (dataset_dir / row["image"]).is_file()
+    )
+
+    print(
+        f"Caption Brain: {len(rows)} image row(s), {total_to_draft} caption(s) to draft, mode={args.mode}, focus={args.training_focus}.",
+        flush=True,
+    )
 
     for row in rows:
         current_text = row["prompt"].strip()
         if args.mode == "fill_blanks" and current_text:
             skipped += 1
+            print(f"Caption Brain: skipping {row['image']} because it already has a caption.", flush=True)
             continue
 
         image_path = dataset_dir / row["image"]
         if not image_path.is_file():
             continue
 
+        print(f"Caption Brain: drafting {drafted + 1}/{total_to_draft}: {row['image']}", flush=True)
         caption = request_caption(args.endpoint, model_id, prompt, image_path, args.training_focus)
         if not caption:
             raise RuntimeError(f"Caption Brain returned an empty caption for {row['image']}.")
 
         row["prompt"] = caption
         drafted += 1
-        print(f"Drafted caption for {row['image']}: {caption}")
+        print(f"Drafted caption for {row['image']}: {caption}", flush=True)
 
     write_metadata(metadata_path, rows)
 
     remaining_blank = sum(1 for row in rows if not row["prompt"].strip())
     print(
         f"Caption Brain wrote metadata.csv with {drafted} drafted caption(s), {skipped} skipped row(s), "
-        f"and {remaining_blank} blank row(s) left."
+        f"and {remaining_blank} blank row(s) left.",
+        flush=True,
     )
 
     return 0

@@ -58,7 +58,26 @@ scripts/lora_fetch_assets.sh
 scripts/lora_refresh.sh
 ```
 
-The LoRA manager page should remain custom. It needs controls for datasets, jobs, generated LoRAs, UI launch, queue worker, and model/adapter readiness.
+The LoRA manager page is custom. `Easy LoRA` is the beginner workflow and keeps
+the old Manager AI Toolkit handoff:
+
+```text
+captions / metadata.csv
+-> Add Job
+-> AI Toolkit job registration
+-> Start Job
+-> AI Toolkit queue start
+-> progress/log polling
+-> finished .safetensors output
+```
+
+`Add Job` creates or updates the AI Toolkit job. `Start Job` queues that saved
+job and starts the AI Toolkit queue. `Stop Job` and `Delete Job` act only on AI
+Toolkit jobs and do not delete datasets, captions, finished LoRAs, or downloaded
+training assets.
+
+The module `Logs` action should open the real module log file in Notepad via
+`last_log=...`.
 
 ## Default Local URLs
 

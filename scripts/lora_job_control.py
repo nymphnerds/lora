@@ -143,7 +143,7 @@ def parse_progress_from_log(log_text: str, expected_total: int) -> tuple[int, in
             stage = "Rendering baseline preview..."
 
         percent_match = PERCENT_RE.search(line)
-        if percent_match and current == 0:
+        if percent_match and current == 0 and ("step" in lower or "train" in lower):
             parsed_percent = max(0, min(100, int(percent_match.group("percent"))))
             percent = max(percent, parsed_percent)
             stage = f"Training progress: {percent}%"
@@ -202,8 +202,8 @@ def normalize_learning_rate(value: Any) -> str:
         return raw.lower()
     known = {
         0.0001: "1e-4",
+        0.00008: "8e-5",
         0.00005: "5e-5",
-        0.0002: "2e-4",
     }
     for number, label in known.items():
         if abs(parsed - number) < 0.000000001:
@@ -409,6 +409,8 @@ def discover_finished_loras(lora_root: Path) -> list[dict[str, Any]]:
     for path in lora_root.rglob("*.safetensors"):
         if not path.is_file():
             continue
+        if path.parent != lora_root and path.stem != path.parent.name:
+            continue
         output_dir = path.parent
         metadata = read_lora_metadata(output_dir)
         finished.append(
@@ -425,6 +427,15 @@ def discover_finished_loras(lora_root: Path) -> list[dict[str, Any]]:
 
     finished.sort(key=lambda item: str(item.get("modified") or ""), reverse=True)
     return finished
+
+
+def count_datasets(dataset_root: Path) -> int:
+    if not dataset_root.is_dir():
+        return 0
+    try:
+        return sum(1 for path in dataset_root.iterdir() if path.is_dir())
+    except OSError:
+        return 0
 
 
 def wait_for_live_state(job_id: str) -> dict[str, Any] | None:
@@ -468,11 +479,15 @@ def start_job(args: argparse.Namespace) -> int:
     if status.lower() not in {"queued", "running"}:
         raise SystemExit("AI Toolkit did not keep the job in a queued or running state.")
 
+    encoded_gpu_ids = urllib.parse.quote(gpu_ids, safe="")
+    api_request("GET", f"/api/queue/{encoded_gpu_ids}/start")
+
     print(f"normalized_name={normalized_lora}")
     print(f"aitk_job_id={job_id}")
     print(f"gpu_ids={gpu_ids}")
     print(f"status={status}")
     print(f"Queued '{normalized_lora}' in the AI Toolkit queue on GPU target {gpu_ids}.")
+    print(f"Started AI Toolkit queue {gpu_ids}.")
     return 0
 
 
@@ -561,6 +576,8 @@ def job_status(args: argparse.Namespace) -> int:
         "display_name": str(lora_metadata.get("display_name") or normalized_lora),
         "activation_text": str(lora_metadata.get("activation_text") or ""),
         "lora_type": str(lora_metadata.get("lora_type") or ""),
+        "lora_count": len(finished_loras),
+        "dataset_count": count_datasets(dataset_root),
         "finished_lora_count": len(finished_loras),
         "latest_finished_lora": str(latest_finished.get("path") or ""),
         "latest_finished_lora_name": str(latest_finished.get("display_name") or latest_finished.get("name") or ""),
@@ -598,6 +615,10 @@ def job_status(args: argparse.Namespace) -> int:
                 log_text = get_job_log(job_id)
                 if log_text:
                     current, total, percent, text = parse_progress_from_log(log_text, expected_total)
+                    if final_exists and total > 0:
+                        current = total
+                        percent = 100
+                        text = f"Training completed: {total}/{total} steps"
                     status.update(
                         {
                             "log_available": True,

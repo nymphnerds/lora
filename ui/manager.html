@@ -33,7 +33,7 @@
     color: var(--light);
     font-family: var(--font-body);
     font-weight: 400;
-    overflow-x: hidden;
+    overflow: hidden;
   }
 
   button,
@@ -114,9 +114,13 @@
 
   .wrap {
     width: min(1040px, calc(100vw - 18px));
+    height: calc(100vh - 12px);
+    min-height: 0;
     margin: 0 auto;
     padding: 8px 0 6px;
     position: relative;
+    display: flex;
+    flex-direction: column;
   }
 
   .wrap::before {
@@ -146,7 +150,10 @@
       0 18px 46px rgba(0,0,0,0.32);
   }
 
-  .form { padding: 9px; }
+  .form {
+    flex: 0 0 auto;
+    padding: 9px;
+  }
 
   .form::before {
     content: "AI TOOLKIT JOB BUILDER";
@@ -155,6 +162,20 @@
     color: var(--teal);
     font: 11px/1 var(--font-mono);
     letter-spacing: 0.08em;
+  }
+
+  .trainer-summary {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: -1px 0 8px;
+    color: #b7c9cc;
+    font-size: 12px;
+  }
+
+  .trainer-summary strong {
+    color: var(--light);
+    font-weight: 700;
   }
 
   .row {
@@ -355,7 +376,13 @@
     color: var(--light);
   }
 
-  .log { margin-top: 8px; }
+  .log {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    margin-top: 8px;
+  }
 
   .log-head {
     display: flex;
@@ -377,7 +404,8 @@
   }
 
   pre {
-    height: 78px;
+    flex: 1 1 auto;
+    min-height: 0;
     overflow: auto;
     margin: 6px 9px 9px;
     border: 1px solid var(--dark4);
@@ -465,38 +493,45 @@
     <h1>Easy <span>LoRA</span></h1>
 
     <section class="panel form" aria-label="Easy LoRA controls">
+      <div class="trainer-summary">
+        <span>LoRAs: <strong id="lora-count">-</strong></span>
+        <span>|</span>
+        <span>Datasets: <strong id="dataset-count">-</strong></span>
+      </div>
+
       <div class="row">
         <label for="lora-name">LoRA name</label>
-        <input id="lora-name" type="text" value="my_first_lora">
+        <input id="lora-name" type="text" value="my_first_lora" title="Name for this training run. It also names the dataset folder, AI Toolkit job, and finished LoRA output.">
         <div class="button-row">
-          <button id="open-pictures" type="button">Open Pictures</button>
+          <button id="open-pictures" type="button" title="Open this LoRA dataset folder. Put your training images here.">Open Pictures Folder</button>
+          <button id="open-loras" type="button" title="Open the folder where finished .safetensors LoRA files are saved.">Open LoRAs</button>
         </div>
       </div>
 
       <div class="row">
         <span class="label">Captions</span>
         <div class="pair">
-          <select id="caption-mode" aria-label="Caption fill mode">
-            <option value="fill_blanks">Fill Blank Only</option>
-            <option value="overwrite_all">Overwrite All Drafts</option>
+          <button id="caption-brain" type="button" title="Ask Brain to draft captions in metadata.csv for the images in this dataset.">Caption with Brain</button>
+          <select id="caption-mode" aria-label="Caption fill mode" title="Fill Blank Only keeps existing captions. Overwrite All Drafts replaces draft captions.">
+            <option value="fill_blanks" title="Only images with blank captions get new Brain captions.">Fill Blank Only</option>
+            <option value="overwrite_all" title="Replace all draft captions with fresh Brain captions.">Overwrite All Drafts</option>
           </select>
-          <button id="caption-brain" type="button">Caption with Brain</button>
         </div>
-        <button id="open-captions" type="button">Open Captions</button>
+        <button id="open-captions" type="button" title="Open metadata.csv in Notepad. Add Job mirrors these captions into .txt sidecars for AI Toolkit.">Open Draft CSV</button>
       </div>
 
       <div class="row">
         <span class="label">Training</span>
         <div class="pair">
-          <select id="preset" aria-label="Preset">
-            <option value="fast_test">Fast Test</option>
-            <option value="baseline" selected>Baseline</option>
-            <option value="style">Style</option>
-            <option value="strong_style">Strong Style</option>
+          <select id="preset" aria-label="Preset" title="Training preset. Fast Test is short; Baseline is the normal beginner choice; Style presets train longer.">
+            <option value="fast_test" title="Quick 500-step smoke test to confirm the pipeline works.">Fast Test</option>
+            <option value="baseline" selected title="Normal beginner training preset.">Baseline</option>
+            <option value="style" title="Preset tuned for visual style training.">Style</option>
+            <option value="strong_style" title="Longer style training for stronger style capture.">Strong Style</option>
           </select>
-          <select id="adapter" aria-label="Training adapter">
-            <option value="v1">v1 (Recommended)</option>
-            <option value="v2">v2 (Experimental)</option>
+          <select id="adapter" aria-label="Training adapter" title="Training adapter used with Z-Image Turbo. v1 is the safe default.">
+            <option value="v1" title="Recommended adapter for normal training.">v1 (Recommended)</option>
+            <option value="v2" title="Experimental adapter. Use only if you specifically want to test it.">v2 (Experimental)</option>
           </select>
         </div>
         <span></span>
@@ -504,7 +539,7 @@
 
       <div class="row">
         <label for="sample-prompt">Sample prompt</label>
-        <input id="sample-prompt" type="text" maxlength="160" placeholder="Optional">
+        <input id="sample-prompt" type="text" maxlength="160" placeholder="Optional" title="Optional preview prompt saved into the AI Toolkit job. Leave blank for the default empty sample prompt.">
         <span></span>
       </div>
 
@@ -512,35 +547,35 @@
         <div class="field">
           <span>Steps</span>
           <div class="range-row">
-            <input id="steps" type="range" min="500" max="6000" step="100" value="3000">
-            <output class="value" for="steps">3000</output>
+            <input id="steps" type="range" min="500" max="6000" step="100" value="3000" title="Total training steps. More steps can learn more, but take longer and may overtrain.">
+            <output class="value" for="steps" title="Selected total training steps.">3000</output>
           </div>
         </div>
-        <label class="field">
+        <label class="field" title="How many intermediate checkpoints to keep while training. Off saves only the final output.">
           <span>Checkpoints</span>
-          <select id="checkpoints"><option value="0">Off</option><option value="2">2</option><option value="4" selected>4</option><option value="8">8</option></select>
+          <select id="checkpoints"><option value="0" title="Only save the final LoRA.">Off</option><option value="2" title="Keep two intermediate checkpoints.">2</option><option value="4" selected title="Keep four intermediate checkpoints.">4</option><option value="8" title="Keep eight intermediate checkpoints.">8</option></select>
         </label>
-        <label class="field">
+        <label class="field" title="How strongly the model updates each step. Lower is gentler; higher learns faster.">
           <span>Learning rate</span>
-          <select id="learning-rate"><option value="1e-4">1e-4</option><option value="5e-5">5e-5</option><option value="2e-4">2e-4</option></select>
+          <select id="learning-rate"><option value="5e-5" title="Gentler learning rate.">5e-5</option><option value="8e-5" title="Middle learning rate from the old Manager.">8e-5</option><option value="1e-4" selected title="Default learning rate.">1e-4</option></select>
         </label>
-        <label class="field">
+        <label class="field" title="LoRA capacity. Higher rank can learn more detail but uses more VRAM and can overfit.">
           <span>LoRA rank</span>
-          <select id="rank"><option value="16">16</option><option value="8">8</option><option value="32">32</option></select>
+          <select id="rank"><option value="4" title="Smallest, fastest LoRA.">4</option><option value="8" title="Good for fast tests and lighter training.">8</option><option value="16" selected title="Default capacity for normal training.">16</option><option value="32" title="Higher capacity, more VRAM, more overfit risk.">32</option></select>
         </label>
       </div>
 
       <div class="options">
-        <label class="check"><input id="low-vram" type="checkbox">Low VRAM mode</label>
-        <span id="checkpoint-summary" class="hint">Checkpoint every 750 steps</span>
+        <label class="check" title="Use lower-memory model settings. Slower, but can help if training runs out of VRAM."><input id="low-vram" type="checkbox">Low VRAM mode</label>
+        <span id="checkpoint-summary" class="hint" title="How often AI Toolkit will save intermediate checkpoints for the current step/checkpoint settings.">Checkpoint every 750 steps</span>
       </div>
 
       <div class="jobs">
-        <button id="create-job" type="button">Create Job</button>
-        <button id="start-job" class="primary" type="button">Start Training</button>
-        <button id="stop-job" type="button">Stop Job</button>
-        <button id="delete-job" class="danger" type="button">Delete Job</button>
-        <button id="job-status" type="button">Status</button>
+        <button id="create-job" type="button" title="Prepare metadata, mirror captions to .txt files, create YAML, and register the AI Toolkit job.">Add Job</button>
+        <button id="start-job" type="button" title="Queue the saved AI Toolkit job and start the AI Toolkit queue.">Start Job</button>
+        <button id="stop-job" type="button" title="Stop the queued or running AI Toolkit training job.">Stop Job</button>
+        <button id="delete-job" class="danger" type="button" title="Delete only the AI Toolkit job. Datasets, captions, LoRAs, and downloaded assets are kept.">Delete Job</button>
+        <button id="job-status" type="button" title="Refresh this page from AI Toolkit status, progress, and log tail.">Refresh</button>
       </div>
 
       <div id="progress" class="progress" role="progressbar" aria-label="Training progress" aria-valuemin="0" aria-valuemax="3000" aria-valuenow="0">
@@ -579,6 +614,7 @@
     const output = document.querySelector("output[for='steps']");
     const loraName = document.querySelector("#lora-name");
     const openPictures = document.querySelector("#open-pictures");
+    const openLoras = document.querySelector("#open-loras");
     const openCaptions = document.querySelector("#open-captions");
     const captionBrain = document.querySelector("#caption-brain");
     const captionMode = document.querySelector("#caption-mode");
@@ -605,13 +641,34 @@
     const finishedMeta = document.querySelector("#finished-meta");
     const finishedPath = document.querySelector("#finished-path");
     const finishedActivation = document.querySelector("#finished-activation");
+    const loraCount = document.querySelector("#lora-count");
+    const datasetCount = document.querySelector("#dataset-count");
     const logOutput = document.querySelector("#log-output");
     let requestId = 0;
     let statusInFlight = false;
     let actionInFlight = false;
     let formHydrated = false;
     let formEdited = false;
+    let lastSavedJobSettings = null;
+    let lastStatusValues = {};
+    let lastActionOutput = "";
     const pendingRequests = new Map();
+
+    function appendLiveLog(line) {
+      const text = String(line || "").trim();
+      if (!text) {
+        return;
+      }
+      const existing = logOutput.textContent && !logOutput.textContent.startsWith("Checking Easy LoRA status")
+        ? logOutput.textContent.split(/\r?\n/)
+        : [];
+      existing.push(text);
+      while (existing.length > 80) {
+        existing.shift();
+      }
+      logOutput.textContent = existing.join("\n");
+      logOutput.scrollTop = logOutput.scrollHeight;
+    }
 
     function normalizeActionName(value) {
       const normalized = String(value || "")
@@ -659,11 +716,21 @@
       try {
         if (options.startingMessage) {
           logOutput.textContent = options.startingMessage;
+        } else {
+          logOutput.textContent = `Running ${action}...`;
         }
         const output = await moduleAction(action, params);
         const trimmed = String(output || "").trim();
         if (trimmed) {
+          lastActionOutput = trimmed;
           logOutput.textContent = trimmed;
+        }
+        if (action === "delete_job") {
+          lastStatusValues = { ...lastStatusValues, job_exists: "false", job_status: "" };
+          lastSavedJobSettings = null;
+          updatePrimaryJobAction();
+          progressSteps.textContent = `Current settings: ${steps.value} steps`;
+          progressState.textContent = "No AI Toolkit job yet: Add Job first";
         }
       } catch (error) {
         logOutput.textContent = error.message || String(error);
@@ -680,6 +747,9 @@
       window.chrome.webview.addEventListener("message", event => {
         const message = event.data || {};
         if (message.type !== "module_action_result") {
+          if (message.type === "module_action_progress") {
+            appendLiveLog(message.line);
+          }
           return;
         }
         const pending = pendingRequests.get(message.requestId);
@@ -839,6 +909,30 @@
         : `Checkpoint every ${Math.max(1, Math.floor(stepCount / checkpointCount))} steps`;
     }
 
+    function presetDefaults(value) {
+      switch (value) {
+        case "fast_test":
+          return { steps: 500, checkpoints: "0", learningRate: "1e-4", rank: "8", lowVram: false, samplePrompt: "" };
+        case "strong_style":
+          return { steps: 5000, checkpoints: "4", learningRate: "1e-4", rank: "16", lowVram: false, samplePrompt: "" };
+        case "style":
+        case "baseline":
+        default:
+          return { steps: 3000, checkpoints: "4", learningRate: "1e-4", rank: "16", lowVram: false, samplePrompt: "" };
+      }
+    }
+
+    function applyPresetDefaults(value) {
+      const defaults = presetDefaults(value);
+      setRangeValue(steps, defaults.steps);
+      checkpoints.value = defaults.checkpoints;
+      learningRate.value = defaults.learningRate;
+      rank.value = defaults.rank;
+      lowVram.checked = defaults.lowVram;
+      samplePrompt.value = defaults.samplePrompt;
+      updateCheckpointSummary();
+    }
+
     function samplePromptFromStatus(values) {
       if (!values.form_sample_prompt_json) {
         return "";
@@ -848,6 +942,59 @@
       } catch {
         return values.form_sample_prompt_json;
       }
+    }
+
+    function currentJobSettings() {
+      return {
+        preset: preset.value,
+        steps: String(intValue(steps.value, 3000)),
+        checkpoints: String(normalizedCheckpointCount()),
+        learningRate: learningRate.value,
+        rank: String(intValue(rank.value, 16)),
+        lowVram: lowVram.checked ? "true" : "false",
+        adapter: adapter.value,
+        samplePrompt: samplePrompt.value.trim()
+      };
+    }
+
+    function statusJobSettings(values) {
+      if (values.form_settings_exists !== "true") {
+        return null;
+      }
+      return {
+        preset: values.form_preset || "",
+        steps: String(intValue(values.form_steps)),
+        checkpoints: String(intValue(values.form_checkpoints)),
+        learningRate: values.form_learning_rate || "",
+        rank: String(intValue(values.form_rank)),
+        lowVram: values.form_low_vram === "true" ? "true" : "false",
+        adapter: values.form_adapter || "",
+        samplePrompt: samplePromptFromStatus(values).trim()
+      };
+    }
+
+    function hasPendingJobChanges() {
+      if (!lastSavedJobSettings) {
+        return false;
+      }
+      const current = currentJobSettings();
+      return Object.keys(current).some(key => current[key] !== lastSavedJobSettings[key]);
+    }
+
+    function updatePrimaryJobAction() {
+      const jobReady = lastStatusValues.job_exists === "true" &&
+        lastSavedJobSettings &&
+        !hasPendingJobChanges();
+      const activeJob = String(lastStatusValues.job_status || "").toLowerCase();
+      const jobActive = activeJob === "queued" || activeJob === "running";
+      const jobExists = lastStatusValues.job_exists === "true";
+      createJob.classList.toggle("primary", !jobReady);
+      startJob.classList.toggle("primary", Boolean(jobReady && !jobActive));
+      stopJob.classList.toggle("primary", jobActive);
+      createJob.disabled = jobActive;
+      startJob.disabled = !jobReady || jobActive;
+      stopJob.disabled = !jobActive;
+      deleteJob.disabled = !jobExists || jobActive;
     }
 
     function applyFormSettings(values) {
@@ -867,6 +1014,8 @@
     }
 
     function applyStatus(values) {
+      lastStatusValues = values;
+      lastSavedJobSettings = statusJobSettings(values);
       const percent = Math.max(0, Math.min(100, intValue(values.progress_percent)));
       const current = intValue(values.progress_current);
       const total = intValue(values.progress_total);
@@ -886,11 +1035,36 @@
       progress.setAttribute("aria-valuemax", String(total || 100));
       progressPercent.textContent = `${percent}%`;
       progressFill.style.width = `${percent}%`;
-      progressSteps.textContent = total > 0 ? `${current} / ${total} steps` : "No steps yet";
-      progressState.textContent = jobState;
+      loraCount.textContent = String(intValue(values.lora_count || values.finished_lora_count));
+      datasetCount.textContent = String(intValue(values.dataset_count));
       applyFormSettings(values);
+      const pendingChanges = values.job_exists === "true" && hasPendingJobChanges();
+      if (pendingChanges) {
+        progressSteps.textContent = total > 0 ? `Saved job: ${current} / ${total} steps` : "Saved job settings changed";
+        progressState.textContent = "Settings changed: Add Job first";
+      } else if (values.job_exists !== "true") {
+        progressSteps.textContent = `Current settings: ${steps.value} steps`;
+        progressState.textContent = "No AI Toolkit job yet: Add Job first";
+      } else {
+        progressSteps.textContent = total > 0 ? `${current} / ${total} steps` : "No steps yet";
+        const activeJob = String(values.job_status || "").toLowerCase();
+        progressState.textContent = values.final_checkpoint_exists === "true"
+          ? "Training completed"
+          : activeJob === "queued" || activeJob === "running"
+          ? jobState
+          : "Job saved under AI Toolkit Jobs > Idle";
+      }
+      updatePrimaryJobAction();
       applyFinishedSummary(values);
-      logOutput.textContent = `${state}\n${logTail || "No live log available yet."}`;
+      if (logTail) {
+        logOutput.textContent = `${state}\n${logTail}`;
+      } else if (lastActionOutput) {
+        logOutput.textContent = lastActionOutput;
+      } else if (values.job_exists === "true") {
+        logOutput.textContent = "AI Toolkit job is saved under Jobs > Idle.\nClick Start Job to add it to the queue.";
+      } else {
+        logOutput.textContent = `${state}\nNo live log available yet.`;
+      }
     }
 
     async function refreshStatus(force = false) {
@@ -932,7 +1106,7 @@
     }
 
     function captionFocus() {
-      return preset.value === "style" || preset.value === "strong_style" ? "style" : "character";
+      return "style";
     }
 
     function encodeUtf8Base64(value) {
@@ -964,34 +1138,58 @@
       return params;
     }
 
+    function startTraining() {
+      if (lastStatusValues.job_exists === "false" || !lastSavedJobSettings) {
+        logOutput.textContent = "Add Job first, then Start Job.";
+        return;
+      }
+      if (hasPendingJobChanges()) {
+        logOutput.textContent = "Settings changed. Click Add Job to apply them before Start Job.";
+        return;
+      }
+      runEasyAction("start_job");
+    }
+
     steps.addEventListener("input", () => {
       output.textContent = steps.value;
       updateCheckpointSummary();
+    });
+    preset.addEventListener("change", () => {
+      applyPresetDefaults(preset.value);
     });
     checkpoints.addEventListener("change", updateCheckpointSummary);
     for (const control of [preset, adapter, steps, checkpoints, learningRate, rank, lowVram, samplePrompt, captionMode]) {
       control.addEventListener("input", () => {
         formEdited = true;
+        updatePrimaryJobAction();
       });
       control.addEventListener("change", () => {
         formEdited = true;
+        updatePrimaryJobAction();
       });
     }
     loraName.addEventListener("input", () => {
       formHydrated = false;
       formEdited = false;
+      lastSavedJobSettings = null;
+      lastStatusValues = {};
+      updatePrimaryJobAction();
     });
     openPictures.addEventListener("click", () => runEasyAction("open_pictures"));
+    openLoras.addEventListener("click", () => runEasyAction("open_loras"));
     openCaptions.addEventListener("click", () => runEasyAction("open_captions"));
     captionBrain.addEventListener("click", () => runEasyAction("caption_brain", {
       "caption-mode": captionMode.value,
       "training-focus": captionFocus()
+    }, {
+      startingMessage: `Caption Brain starting...\nMode: ${captionMode.options[captionMode.selectedIndex]?.text || captionMode.value}\nUsing style-safe content captioning.`
     }));
     createJob.addEventListener("click", () => runEasyAction("create_job", createJobParams()));
-    startJob.addEventListener("click", () => runEasyAction("start_job"));
+    startJob.addEventListener("click", startTraining);
     stopJob.addEventListener("click", () => runEasyAction("stop_job"));
     deleteJob.addEventListener("click", () => runEasyAction("delete_job"));
     jobStatus.addEventListener("click", () => refreshStatus(true));
+    updatePrimaryJobAction();
     updateCheckpointSummary();
     ensureBackendOnLoad();
     setInterval(refreshStatus, 5000);

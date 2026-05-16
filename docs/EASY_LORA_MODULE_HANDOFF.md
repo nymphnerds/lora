@@ -1,6 +1,6 @@
 # Easy LoRA Module Handoff
 
-Date: 2026-05-15
+Date: 2026-05-16
 
 ## Goal
 
@@ -79,27 +79,27 @@ NymphsModules/lora
 
 ## Current State Snapshot
 
-This section reflects the local modular build after the 2026-05-15 install,
-asset-fetch, Easy LoRA wiring, status UX, and button-label cleanup passes.
+This section reflects the local modular build after the 2026-05-16 real Easy
+LoRA validation pass against the managed `NymphsCore` WSL distro.
 
 The module is installable and visible in the standard Manager module shell.
 Easy LoRA now has the original module action flow wired through AI Toolkit,
 including local/API current-job settings import into the form.
 
-Current pushed heads:
+Current pushed heads before the 0.1.35 push:
 
 ```text
 NymphsModules/lora main:              4a846ea  LoRA 0.1.34
 NymphsModules/nymphs-registry main:   f638a7d  registry points LoRA at 0.1.34
-NymphsCore modular:                   7fdf948  Core EXE/ZIP rebuilt
+NymphsCore modular:                   local validation fixes pending push
 ```
 
-The live test WSL install was updated in place to LoRA `0.1.34` without
-reinstalling or redownloading training assets.
+The live test WSL install was updated in place from source without reinstalling
+or redownloading training assets.
 
 ### Done
 
-- `LoRA` exists as a first-party module repo with manifest version `0.1.34`.
+- `LoRA` exists as a first-party module repo with manifest version `0.1.35`.
 - The Manager can install, update, repair, uninstall, and delete LoRA data using
   the standard module lifecycle rail.
 - Base install creates the isolated trainer root:
@@ -130,31 +130,31 @@ ostris/zimage_turbo_training_adapter
 - Module-owned dataset/caption helpers now normalize names, create selected
   dataset folders, refresh `metadata.csv`, preserve existing captions, and
   mirror captions to sidecar `.txt` files.
-- `Open Pictures` and `Open Captions` in `Easy LoRA` now call module actions
-  for the selected normalized LoRA name. `Open Captions` prepares
+- `Open Pictures Folder` and `Open Draft CSV` in `Easy LoRA` now call module actions
+  for the selected normalized LoRA name. `Open Draft CSV` prepares
   `metadata.csv` and mirrors `.txt` captions before reporting the path.
 - `Caption with Brain` is now module-owned and wired from `Easy LoRA`. It ports
   the old Manager Brain vision workflow: prepare metadata, find/reuse/start a
   compatible Brain vision model, draft captions through the local
   OpenAI-compatible Brain endpoint, then refresh metadata and mirror `.txt`
   sidecars.
-- `Create Job` is now module-owned and wired from `Easy LoRA`. It prepares
+- `Add Job` is now module-owned and wired from `Easy LoRA`. It prepares
   metadata, mirrors sidecar `.txt` captions, ensures the selected adapter,
   generates the old-style AI Toolkit YAML, writes `nymphs_lora.json`, builds the
   AI Toolkit JSON `job_config`, starts/configures AI Toolkit if needed, and
   upserts the train job through `/api/jobs`.
-- `Start Training` is now module-owned and wired from `Easy LoRA`. It starts the
+- `Start Job` is now module-owned and wired from `Easy LoRA`. It starts the
   AI Toolkit queue worker when available, ensures the AI Toolkit API/settings
   are ready, finds the selected job by `job_ref`, calls
-  `/api/jobs/{id}/start`, and waits for AI Toolkit to report `queued` or
-  `running`.
+  `/api/jobs/{id}/start`, waits for AI Toolkit to report `queued` or `running`,
+  and then calls `/api/queue/{gpu_ids}/start` to match the old Manager handoff.
 - `Stop Job` is now module-owned and wired from `Easy LoRA`. It uses the active
   AI Toolkit train job, calls `/api/jobs/{id}/mark_stopped` for queued jobs, and
   calls `/api/jobs/{id}/stop` for running jobs.
 - `Delete Job` is now module-owned and wired from `Easy LoRA`. It finds the
   selected job by normalized `job_ref` and calls `/api/jobs/{id}/delete` without
   deleting datasets, images, captions, or generated LoRA files.
-- `Status` / `job_status` is now module-owned and wired from `Easy LoRA`. It
+- `Refresh` / `job_status` is now module-owned and wired from `Easy LoRA`. It
   reports local YAML/metadata/final-checkpoint state without launching AI
   Toolkit, and when the AI Toolkit API is running it fetches the selected job,
   `/api/jobs/{id}/log`, parsed progress, and a log tail.
@@ -185,38 +185,69 @@ Stop AI Toolkit   -> stops the AI Toolkit UI/worker only
 - Easy LoRA now checks `job_status` before starting AI Toolkit on page load. If
   the AI Toolkit API is already running, reopening Easy LoRA skips the startup
   action and hydrates from status immediately.
+- Easy LoRA now follows old Manager labels/defaults more closely: `Add Job`,
+  `Start Job`, `Open Pictures Folder`, `Open LoRAs`, `Open Draft CSV`,
+  learning-rate options `5e-5`, `8e-5`, `1e-4`, and rank order `4`, `8`,
+  `16`, `32`.
+- Easy LoRA button state now follows the real workflow: `Add Job` is primary
+  until a matching AI Toolkit job exists, `Start Job` is primary for a saved
+  idle job, and `Stop Job` is primary while queued/running.
+- Easy LoRA now includes hover help/tooltips for beginner controls.
+- Progress parsing now ignores warmup checkpoint-shard percentages and only
+  treats real step/training lines as training progress.
+- Finished output detection now forces completed step display to the full total
+  when the final `.safetensors` exists.
+- Finished LoRA count now counts final LoRA outputs, not intermediate checkpoint
+  `.safetensors` files.
 - `Delete Data` is separate from uninstall and is available through the
   universal rail.
 
-### Partially Done
+### Validation Completed 2026-05-16
 
-- The Easy LoRA page visually contains the right controls, polls/renders
-  `job_status` in-place, and exposes final/latest output state. `Open Pictures`,
-  `Open Captions`, `Caption with Brain`, `Create Job`, `Start Training`, `Stop
-  Job`, `Delete Job`, and `Status` are wired through module actions.
-- The old main-branch AI Toolkit job flow has been ported into module-owned
-  helpers enough for UI smoke testing. It still needs a tiny real training run
-  to prove the full API queue/job/progress/final-output path end to end.
+Validated on the real managed runtime distro, not the development WSL:
 
-### Not Done / Not Proven
+```bash
+wsl.exe -d NymphsCore --user nymph -- ...
+```
 
-No original handoff button/action entrypoints remain unwired. The important
-remaining work is validation, not more speculative UI:
+Validated path:
 
-- prove `Create Job -> Start Training -> progress/log polling -> final
-  .safetensors` with a tiny real dataset
-- verify `Stop Job` and `Delete Job` against real queued/running/completed AI
-  Toolkit jobs
-- verify `Caption with Brain` against the current Brain module/runtime
-- fix any AI Toolkit API edge cases discovered during that real run
-- only then consider deliberate fallback behavior such as direct
-  `python run.py jobs/name.yaml`
+```text
+Open Pictures Folder
+Open Draft CSV
+Caption with Brain / Fill Blank Only
+Add Job
+AI Toolkit API registration
+Start Job
+AI Toolkit queue start
+progress/log polling
+final /home/nymph/LoRA/loras/my_first_lora/my_first_lora.safetensors
+finished output summary
+Delete Job preserving datasets/captions/outputs/assets
+```
+
+Discovered and fixed during validation:
+
+- Start Job was queuing the job but not starting `/api/queue/{gpu_ids}/start`.
+- Progress parser treated `Loading checkpoint shards: 100%` as training 100%.
+- Completed jobs could display the last parsed `499 / 500`-style step even
+  after the final output existed.
+- The LoRA count included intermediate checkpoint files.
+- Delete Job UI feedback lagged until the next poll.
+
+### Still Worth Watching
+
+- Stop Job has been kept on the old API path and should continue to be tested
+  against queued and running jobs when convenient.
+- Multi-job queue management is intentionally not an Easy LoRA beginner feature;
+  Easy LoRA manages the selected LoRA name/job, while AI Toolkit remains the
+  advanced multi-job surface.
 
 ### Current User-Visible Reality
 
 When `Easy LoRA` opens today, it is a compact module-owned training surface.
-`Open Pictures`, `Open Captions`, `Caption with Brain`, `Create Job`,
-`Start Training`, `Stop Job`, `Delete Job`, and `Status` are wired through
+`Open Pictures Folder`, `Open Draft CSV`, `Caption with Brain`, `Add Job`,
+`Start Job`, `Stop Job`, `Delete Job`, and `Refresh` are wired through
 module actions. The progress bar and log text are now populated from
 `job_status`, and finished LoRAs are summarized when a selected or recently
 completed `.safetensors` output exists:
@@ -245,7 +276,7 @@ open_captions  -> refreshes selected metadata.csv and mirrors .txt captions
 prepare_dataset -> refreshes selected metadata.csv and mirrors .txt captions
 caption_brain  -> drafts captions with Brain vision model and mirrors .txt captions
 create_job     -> generates YAML/job_config and upserts an AI Toolkit train job
-start_job      -> starts selected AI Toolkit job through /api/jobs/{id}/start
+start_job      -> queues selected AI Toolkit job and starts /api/queue/{gpu_ids}
 stop_job       -> stops active AI Toolkit train job through stop/mark_stopped
 delete_job     -> deletes selected AI Toolkit job through /api/jobs/{id}/delete
 job_status     -> reports local/API job state, parsed progress, log tail, finished LoRAs, and form settings
@@ -351,6 +382,16 @@ New in module version `0.1.34`:
 Removed the duplicate Guide module action. Guide routing is Manager-owned.
 ```
 
+New in module version `0.1.35`:
+
+```text
+Validated Easy LoRA end-to-end against the real managed NymphsCore runtime.
+Start Job now mirrors old Manager by queueing the job and starting the AI
+Toolkit GPU queue. Easy LoRA now has workflow-aware button states, Refresh
+labeling, hover help, old Manager learning-rate/rank defaults, corrected
+progress parsing, final-step completion display, and final-output LoRA counts.
+```
+
 Related Core modular change:
 
 ```text
@@ -447,10 +488,10 @@ It should contain only the trainer controls:
 
 ```text
 LoRA name
-Open Pictures
+Open Pictures Folder
 Caption with Brain
 Caption fill mode
-Open Captions
+Open Draft CSV
 Preset
 Training adapter
 Sample prompt
@@ -459,10 +500,11 @@ Checkpoints
 Learning rate
 LoRA rank
 Low VRAM mode
-Create Job
-Start Training
+Add Job
+Start Job
 Stop Job
 Delete Job
+Refresh
 Progress
 Live log / status
 ```
@@ -546,7 +588,7 @@ Easy LoRA form values
 -> generate AI Toolkit JSON job_config
 -> upsert/register job through AI Toolkit API
 -> job appears in AI Toolkit Jobs
--> Start Training queues/starts the AI Toolkit job
+-> Start Job queues the AI Toolkit job and starts the AI Toolkit queue
 ```
 
 Do not reduce this to only:
@@ -693,13 +735,13 @@ Preserve main behavior:
 User-facing language:
 
 ```text
-Open Captions
+Open Draft CSV
 ```
 
 is preferred over:
 
 ```text
-Open Draft CSV
+Open Captions
 ```
 
 unless the old technical wording is intentionally kept.
@@ -924,15 +966,15 @@ separate training asset fetch
 standard lifecycle rail support
 Easy LoRA local HTML surface
 Open AI Toolkit/Stop AI Toolkit/Open Datasets/Open LoRAs/Logs module actions
-Open Pictures/Open Captions/Caption with Brain module actions
-Create Job/Start Training/Stop Job/Delete Job/Status module actions
+Open Pictures Folder/Open Draft CSV/Caption with Brain module actions
+Add Job/Start Job/Stop Job/Delete Job/Refresh module actions
 in-place WebView2 module_action polling/rendering
 finished LoRA summary and saved job setting import
 compact default-window Easy LoRA layout
 clear Manager detail states for Ready / AI Toolkit running / Training active
 ```
 
-Next test pass:
+Completed validation pass:
 
 1. Start the rebuilt `NymphsCore modular` Manager EXE.
 2. Confirm LoRA is installed, assets are ready, and AI Toolkit is stopped:
@@ -950,14 +992,14 @@ Training assets: Ready
 /home/nymph/LoRA/datasets/my_first_lora
 ```
 
-5. Test `Open Pictures`, add a few small images, then test `Open Captions`.
+5. Test `Open Pictures Folder`, add a few small images, then test `Open Draft CSV`.
    Confirm `metadata.csv` and sidecar `.txt` captions are created/preserved.
 6. If Brain is running, test `Caption with Brain` with `Fill Blank Only`.
-7. Test `Create Job`; confirm the job appears in AI Toolkit and was registered
+7. Test `Add Job`; confirm the job appears in AI Toolkit and was registered
    through the AI Toolkit API, not only as a local YAML direct-run job.
-8. Test `Status`; confirm progress/log/status updates in-place and does not
+8. Test `Refresh`; confirm progress/log/status updates in-place and does not
    navigate to Manager Logs.
-9. Run one tiny real `Start Training` test only when ready for GPU use. Watch:
+9. Run one tiny real `Start Job` test only when ready for GPU use. Watch:
 
 ```text
 queued/running AI Toolkit job state
@@ -969,14 +1011,13 @@ final .safetensors under /home/nymph/LoRA/loras
 10. Test `Stop Job`, then `Delete Job`. Confirm delete does not remove
     datasets, captions, generated LoRAs, or downloaded training assets.
 
-Next implementation pass after the test pass:
+Next implementation pass:
 
-1. Fix any real-run AI Toolkit API edge cases found by the tiny training test.
-2. Improve active-job detection in `lora_status.sh` if Manager detail should
+1. Improve active-job detection in `lora_status.sh` if Manager detail should
    show `Training active` even when Easy LoRA is not selected.
-3. Decide whether `Stop AI Toolkit` should be hidden/disabled more aggressively
+2. Decide whether `Stop AI Toolkit` should be hidden/disabled more aggressively
    when both UI and worker are stopped.
-4. Decide whether `Open AI Toolkit` should open inside Manager WebView2 or
+3. Decide whether `Open AI Toolkit` should open inside Manager WebView2 or
    always external browser.
-5. Add any deliberate direct-run fallback only after the AI Toolkit job flow is
+4. Add any deliberate direct-run fallback only after the AI Toolkit job flow is
    confirmed stable.
